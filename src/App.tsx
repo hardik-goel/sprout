@@ -1,29 +1,33 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useStore } from './store'
-import { ParentLayout, KidLayout } from './components/Layouts'
+import { ParentLayout, KidLayout } from './ui/Layouts'
 
 // Parent screens
-import { Onboarding } from './pages/parent/Onboarding'
-import { AddChild } from './pages/parent/AddChild'
-import { ParentHome } from './pages/parent/ParentHome'
-import { TaskLibrary } from './pages/parent/TaskLibrary'
-import { RewardMenu } from './pages/parent/RewardMenu'
-import { ApproveTask } from './pages/parent/ApproveTask'
-import { RewardFulfil } from './pages/parent/RewardFulfil'
-import { Insights } from './pages/parent/Insights'
-import { WeeklyDigest } from './pages/parent/WeeklyDigest'
-import { FamilyCircle } from './pages/parent/FamilyCircle'
-import { GiftPoints } from './pages/parent/GiftPoints'
-import { Children } from './pages/parent/Children'
-import { Upgrade } from './pages/parent/Upgrade'
+import { Onboarding } from './features/parent/Onboarding'
+import { AddChild } from './features/parent/AddChild'
+import { ParentHome } from './features/parent/ParentHome'
+import { TaskLibrary } from './features/parent/TaskLibrary'
+import { RewardMenu } from './features/parent/RewardMenu'
+import { ApproveTask } from './features/parent/ApproveTask'
+import { RewardFulfil } from './features/parent/RewardFulfil'
+import { Insights } from './features/parent/Insights'
+import { WeeklyDigest } from './features/parent/WeeklyDigest'
+import { FamilyCircle } from './features/parent/FamilyCircle'
+import { GiftPoints } from './features/parent/GiftPoints'
+import { Children } from './features/parent/Children'
+import { Upgrade } from './features/parent/Upgrade'
+import { GrowthAlbum } from './features/parent/GrowthAlbum'
+import { FamilyStory } from './features/parent/FamilyStory'
+import { JarSettings } from './features/parent/JarSettings'
+import { More } from './features/parent/More'
 
 // Kid screens
-import { MyDay } from './pages/kid/MyDay'
-import { DoTask } from './pages/kid/DoTask'
-import { Celebrate } from './pages/kid/Celebrate'
-import { MyJar } from './pages/kid/MyJar'
-import { GardenWorld } from './pages/kid/GardenWorld'
-import { RewardsShelf } from './pages/kid/RewardsShelf'
+import { MyDay } from './features/kid/MyDay'
+import { DoTask } from './features/kid/DoTask'
+import { Celebrate } from './features/kid/Celebrate'
+import { MyJar } from './features/kid/MyJar'
+import { GardenWorld } from './features/kid/GardenWorld'
+import { RewardsShelf } from './features/kid/RewardsShelf'
 
 export default function App() {
   const onboarded = useStore((s) => s.data.onboarded)
@@ -45,9 +49,13 @@ export default function App() {
         <Route path="/parent/reward/:rewardId" element={<RewardFulfil />} />
         <Route path="/parent/insights" element={<Insights />} />
         <Route path="/parent/digest" element={<WeeklyDigest />} />
+        <Route path="/parent/story" element={<FamilyStory />} />
+        <Route path="/parent/album" element={<GrowthAlbum />} />
+        <Route path="/parent/jars" element={<JarSettings />} />
         <Route path="/parent/circle" element={<FamilyCircle />} />
         <Route path="/parent/gift" element={<GiftPoints />} />
         <Route path="/parent/children" element={<Children />} />
+        <Route path="/parent/more" element={<More />} />
         <Route path="/parent/upgrade" element={<Upgrade />} />
       </Route>
 

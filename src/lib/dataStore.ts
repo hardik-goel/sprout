@@ -2,43 +2,44 @@
 // dataStore — THE SWAP SEAM.
 //
 // Everything in the app reads/writes data through this single module. Today it
-// is backed by localStorage with seed data. To go from prototype -> real, you
-// implement this SAME interface against Supabase (or any backend) and the rest
-// of the app should not need to change.
+// is backed by localStorage with seed data. To go from prototype -> real you
+// implement this SAME interface against Supabase and nothing else changes.
 //
-// Photos are stored as base64 strings inline (NO cloud storage). The seam for
-// real storage is `savePhoto()` — swap it to upload to Supabase Storage and
-// return the public URL instead of the data URL.
+// Writes are also mirrored into an outbox of ledger events. In Phase 1 nothing
+// drains it, but it means going offline-first in Phase 2 is "drain the outbox
+// and merge by event id" rather than a rewrite. See src/domain/ledger.ts.
 // ============================================================================
 
-import type { AppData } from '@/types'
-import { buildSeed } from './seed'
+import type { AppData, LedgerEvent } from '@/domain/types'
+import { buildSeed, SEED_VERSION } from './seed'
 
-const STORAGE_KEY = 'sprout.appData.v1'
+const STORAGE_KEY = 'sprout.appData.v2'
+const OUTBOX_KEY = 'sprout.outbox.v1'
 
 export interface DataStore {
   load(): AppData
   save(data: AppData): void
   reset(): AppData
-  // Photo seam — currently returns the data URL unchanged (local only).
-  // TODO(real): upload `dataUrl` to Supabase Storage, return the public URL.
-  savePhoto(dataUrl: string): Promise<string>
+  /** Events not yet pushed to a server. Phase 2 drains this on reconnect. */
+  queue(events: LedgerEvent[]): void
+  outbox(): LedgerEvent[]
+  clearOutbox(): void
 }
 
 class LocalDataStore implements DataStore {
   load(): AppData {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) {
-        const seed = buildSeed()
-        this.save(seed)
-        return seed
+      if (!raw) return this.reset()
+      const parsed = JSON.parse(raw) as AppData
+      // A prototype-grade migration: the shape changed, so start from a fresh
+      // seed rather than pretending we can upgrade old demo data.
+      if (!parsed.version || parsed.version < SEED_VERSION || !Array.isArray(parsed.ledger)) {
+        return this.reset()
       }
-      return JSON.parse(raw) as AppData
+      return parsed
     } catch {
-      const seed = buildSeed()
-      this.save(seed)
-      return seed
+      return this.reset()
     }
   }
 
@@ -46,8 +47,8 @@ class LocalDataStore implements DataStore {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
     } catch (e) {
-      // localStorage can throw (quota / private mode). Fail soft — the in-memory
-      // store (zustand) is still the source of truth for the session.
+      // localStorage can throw (quota / private mode). Fail soft — the
+      // in-memory store is still the source of truth for this session.
       console.warn('[dataStore] save failed, continuing in-memory only', e)
     }
   }
@@ -55,13 +56,37 @@ class LocalDataStore implements DataStore {
   reset(): AppData {
     const seed = buildSeed()
     this.save(seed)
+    this.clearOutbox()
     return seed
   }
 
-  async savePhoto(dataUrl: string): Promise<string> {
-    // Local stub: keep the base64 data URL as-is.
-    // TODO(real): replace with Supabase Storage upload returning a public URL.
-    return dataUrl
+  queue(events: LedgerEvent[]): void {
+    if (events.length === 0) return
+    try {
+      const existing = this.outbox()
+      const seen = new Set(existing.map((e) => e.id))
+      const next = [...existing, ...events.filter((e) => !seen.has(e.id))]
+      localStorage.setItem(OUTBOX_KEY, JSON.stringify(next))
+    } catch {
+      /* outbox is best-effort in Phase 1 */
+    }
+  }
+
+  outbox(): LedgerEvent[] {
+    try {
+      const raw = localStorage.getItem(OUTBOX_KEY)
+      return raw ? (JSON.parse(raw) as LedgerEvent[]) : []
+    } catch {
+      return []
+    }
+  }
+
+  clearOutbox(): void {
+    try {
+      localStorage.removeItem(OUTBOX_KEY)
+    } catch {
+      /* ignore */
+    }
   }
 }
 
