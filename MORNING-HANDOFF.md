@@ -27,3 +27,66 @@ Good morning ☕ — here's the honest rundown, human to human.
 3. **Add unit tests for `src/lib/game.ts`** — it's pure and the riskiest logic (streak breaks, gift cap, stage math). Cheap insurance before the logic grows.
 
 — Claude Code
+
+---
+
+## 8. Notes from Claude Code (second build session, 2026-08-10)
+
+Morning ☕ — you handed me the master prompt again in a repo that already had the first session's
+work in it. Rather than rebuild from scratch, I read what was there, found the gaps against the
+spec, and closed them. Honest rundown:
+
+**What was already good.** All the screens, both worlds, the core loop, the design system, the PWA
+setup. That held up.
+
+**What was missing, and is now there.**
+- **The event-sourced ledger** — the spec's "architectural wow" wasn't implemented; balances and
+  streaks were plain fields on the child record. That's now rebuilt properly: an append-only event
+  log with client UUIDs, everything else derived. Undo is a compensating event. This was the big one
+  and it touched every screen.
+- **`src/domain/`** as a real pure layer (was `src/lib/game.ts`), plus `src/features/` and `src/ui/`.
+- **Tests** — there were none. Now 94: 68 over the domain rules, 26 rendering every screen and
+  driving the core loop, the gift cap to its ceiling, and redemption through the actual components.
+- **i18n**, **entitlements**, **photo compression + photoStore seam**, **A1 Growth Album**,
+  **A2 Sunday Family Story** (with a real PNG export), **P6 three jars**, per-child rewards, and
+  the second seeded child (Ira, 6) that the multi-child screens were describing but didn't have.
+
+**Two real bugs I hit, worth knowing about.**
+1. Deriving the child view from the ledger returns a fresh object each call, which made
+   `useSyncExternalStore` re-render forever and froze the tab. Fixed with a `WeakMap` cache keyed on
+   the data snapshot (`src/store.ts`). If you ever add another derived selector that builds an
+   object, memoise it the same way or you'll hit this again.
+2. The seeded Dadi gift was dated *yesterday*, which on a Monday falls in the previous ISO week — so
+   the demo opened with the gift cap looking untouched. Now dated today. A test catches it.
+
+**What I could NOT verify, and you should.** I could not get a visual click-through: the Chrome
+extension refuses screenshots here with "Extension manifest must request permission to access the
+respective host" (it fails on example.com too, so it's the extension, not the app). I verified
+programmatically instead — every route renders with real seeded data and the loop works — but
+**nobody has looked at these screens with their eyes since the changes**. Grant the extension
+permission for localhost, run `npm run dev`, and spend ten minutes clicking. The new screens
+(album, story, jars, more) are the ones I'd look at hardest.
+
+**Assumptions worth a gut-check.**
+- Three jars unlock at age 6 and only on Plus. Debatable both ways.
+- "Screen-free wins" counts learning/health/kindness tasks, not chores. It's a marketing number, so
+  it should mean what you'd defend out loud.
+- The Growth Album is **free**, deliberately. It's the shareable, emotional part; I think gating it
+  would cost more in word-of-mouth than it earns.
+- Seeded photos are inline SVG placeholders, not real photos, so the album looks a bit synthetic
+  until you approve something with a real camera photo.
+
+**Time / commits.** Single session, 2026-08-10, roughly midday. Two commits: the rebuild, then
+verification + docs.
+
+**My honest top 3 next steps.**
+1. **Look at it, then show it to 2–3 parents.** Nothing in this session changed my view that the
+   next real information comes from parents, not from more code.
+2. **Supabase (Phase 2).** The ledger table is the interesting one — append-only, client UUID as
+   primary key, so sync is `on conflict do nothing`. Everything else is straightforward rows. The
+   gift cap must be re-enforced server-side; the client cap is UX, not security.
+3. **Decide the Plus line before you build billing.** Right now Plus holds insights, digest, circle,
+   gifting, multi-child, three jars, India packs and the rich story. That's a lot of surface to
+   defend at ₹99 — I'd test whether insights + family circle alone carry it.
+
+— Claude Code

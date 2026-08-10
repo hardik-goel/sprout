@@ -195,7 +195,9 @@ export function buildSeed(): AppData {
 
   const ledger: LedgerEvent[] = [...vir.events, ...ira.events]
 
-  // Dadi gifted this week — shows the cap working with some already used.
+  // Dadi gifted *today*, so the demo always opens with part of her weekly cap
+  // used. Dating this yesterday silently lands in last week's bucket whenever
+  // the demo is opened on a Monday, and the cap looks untouched.
   ledger.push({
     id: uid('evt'),
     type: 'POINTS_GIFTED',
@@ -203,11 +205,11 @@ export function buildSeed(): AppData {
     actorId: 'mem_dadi',
     actorRole: 'relative',
     delta: 20,
-    at: `${addDays(today, -1)}T10:00:00.000Z`,
-    date: addDays(today, -1),
+    at: `${today}T10:00:00.000Z`,
+    date: today,
     reason: 'Shabaash beta! 🌟',
     refId: null,
-    weekKey: weekKey(addDays(today, -1)),
+    weekKey: weekKey(today),
     jar: 'save',
   })
 

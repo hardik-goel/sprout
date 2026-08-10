@@ -8,7 +8,7 @@
 
 ### Architecture (the part that makes Phase 2 cheap)
 - **`src/domain/`** — pure TypeScript, zero UI imports: ledger, events, garden, age-fit, rewards,
-  insights, story, entitlements, dates. **68 unit tests, all passing** (`npm test`).
+  insights, story, entitlements, dates. **94 tests, all passing** (`npm test`) — 68 over the domain rules, 26 rendering every screen.
 - **Event-sourced points ledger** — no stored balances anywhere. Every points change is an
   append-only `LedgerEvent` (`TASK_APPROVED`, `REWARD_REDEEMED`, `POINTS_GIFTED`, `ADJUSTMENT`)
   with a client-generated UUID. Balances, jars, streaks, garden stage and the gift cap are all
@@ -76,7 +76,9 @@ Placeholders live in `.env.example`. No fake keys anywhere.
 - Live camera preview (today: file input with `capture`, which opens the camera on mobile).
 - Per-child gift history view; reward fulfilment history.
 - Hindi dictionary (`src/i18n/hi.ts` is an empty stub that falls back to English key-by-key).
-- No component/E2E tests — the domain layer is tested, the React layer is not.
+- No E2E tests in a real browser; screen tests run in jsdom.
+- Nobody has visually reviewed the screens since the ledger rebuild (the Chrome extension here lacks
+  host permission for screenshots) — worth ten minutes of clicking.
 
 ---
 

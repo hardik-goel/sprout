@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
@@ -30,4 +30,11 @@ export default defineConfig({
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   server: { host: true }, // expose on LAN so phone can reach it over Wi-Fi
+  test: {
+    // Domain tests run in plain node; screen smoke tests need a DOM.
+    environment: 'node',
+    environmentMatchGlobs: [['src/features/**', 'jsdom'], ['src/ui/**', 'jsdom']],
+    setupFiles: ['./src/test/setup.ts'],
+    restoreMocks: true,
+  },
 })

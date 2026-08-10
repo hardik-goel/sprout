@@ -113,7 +113,32 @@ interface Store {
   clearCelebration(): void
 }
 
+/**
+ * Derived views are recomputed from the ledger, which means a fresh object
+ * every call — and `useStore(s => s.activeChild())` would then hand
+ * useSyncExternalStore a new snapshot on every render and spin forever.
+ *
+ * So views are memoised against the AppData object itself. `data` is replaced
+ * immutably on every write, so a new snapshot invalidates the cache for free
+ * and identity stays stable while nothing changes.
+ */
+const viewCache = new WeakMap<AppData, Map<string, ChildView>>()
+const listCache = new WeakMap<AppData, ChildView[]>()
+
 function viewOf(data: AppData, child: Child): ChildView {
+  let perChild = viewCache.get(data)
+  if (!perChild) {
+    perChild = new Map()
+    viewCache.set(data, perChild)
+  }
+  const hit = perChild.get(child.id)
+  if (hit) return hit
+  const fresh = computeView(data, child)
+  perChild.set(child.id, fresh)
+  return fresh
+}
+
+function computeView(data: AppData, child: Child): ChildView {
   const s = streakInfo(data.ledger, child.id)
   const approvedCount = approvedTaskCount(data.ledger, child.id)
   return {
@@ -162,7 +187,11 @@ export const useStore = create<Store>((set, get) => {
     },
     childViews() {
       const { data } = get()
-      return data.children.map((c) => viewOf(data, c))
+      const hit = listCache.get(data)
+      if (hit) return hit
+      const fresh = data.children.map((c) => viewOf(data, c))
+      listCache.set(data, fresh)
+      return fresh
     },
 
     persist() {
