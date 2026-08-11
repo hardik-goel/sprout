@@ -8,7 +8,7 @@
 
 ### Architecture (the part that makes Phase 2 cheap)
 - **`src/domain/`** — pure TypeScript, zero UI imports: ledger, events, garden, age-fit, rewards,
-  insights, story, entitlements, dates. **139 tests, all passing** (`npm test`) — over the domain
+  insights, story, entitlements, dates. **146 tests, all passing** (`npm test`) — over the domain
   rules, the dictionaries, and every screen rendered with real seeded data.
 - **Event-sourced points ledger** — no stored balances anywhere. Every points change is an
   append-only `LedgerEvent` (`TASK_APPROVED`, `REWARD_REDEEMED`, `POINTS_GIFTED`, `ADJUSTMENT`)

@@ -362,7 +362,22 @@ export const en: Record<string, string> = {
   'more.children': 'Children',
   'more.upgrade': 'Sprout Plus',
   'more.reset': 'Reset demo data',
-  'more.resetConfirm': 'Reset all demo data back to the seeded family?',
+  'more.resetConfirm': 'This clears every task, photo, cheer and point, and puts the seeded family back. It cannot be undone.',
+  'more.resetConfirmCta': 'Reset everything',
+  'common.cancel': 'Cancel',
+
+  // --- remove an assigned task ---
+  'home.removeTask': 'Remove this task',
+  'home.removeTaskTitle': 'Remove this task?',
+  'home.removeTaskBody':
+    'It disappears from today2019s list. Tasks already approved can2019t be removed 2014 undo those from the approval screen instead.',
+  'home.removeTaskCta': 'Remove it',
+
+  // --- crash screen ---
+  'crash.title': 'Something broke',
+  'crash.body': 'Sprout hit an error and couldn2019t draw this screen. Your points are saved.',
+  'crash.reload': 'Back to home',
+  'crash.reset': 'Reset the app data',
   'more.resetHint': 'Clears local data and reloads the seeded family (Vir, Ira, Aanya).',
 
   // --- upgrade ---

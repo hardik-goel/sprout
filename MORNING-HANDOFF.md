@@ -185,3 +185,34 @@ celebration playback are covered by tests instead. Recording itself needs a real
 which is yours to do regardless.
 
 — Claude Code
+
+### Addendum 2 — "anything else pending"
+
+Three real gaps left, all now closed:
+
+1. **`removeTask` was a dead store action.** Assigning the wrong task was permanent — a parent could
+   add "finish homework" to a three-year-old's day and had no way to take it back. Now removable
+   from Home, behind a confirmation. **It refuses to delete an approved task**, and that guard is
+   the important part: an approved task is referenced by its ledger events' `refId` and by the
+   growth album, so deleting one would leave points whose reason no longer exists. Approvals are
+   reversed (append a compensating event), never erased.
+2. **No error boundary.** A render crash was a white screen — and this installs as a PWA, so there
+   is no browser chrome to retry from either. There is now a crash screen with a way back and, if
+   the persisted data is what is broken, a reseed that clears only Sprout's own localStorage keys.
+3. **`window.confirm()` for "reset demo data".** Native dialogs are suppressed outright in some
+   installed-PWA and in-app-browser contexts, which means a destructive action could have fired with
+   no prompt at all. Replaced with an in-app `ConfirmSheet` (Escape to cancel, focus on the safe
+   choice, destructive styling on the other one).
+
+Plus a small accessibility fix: the three text inputs had labels that were not associated with them
+(`htmlFor`/`id`), so a screen reader announced an unlabelled field.
+
+146 tests, tsc clean, build green. Merged to `master` and pushed.
+
+**Still not verified by eye:** the three new pieces above, and voice cheers. The Chrome extension
+was unresponsive again this session (it timed out on routes that had worked earlier, with no Chrome
+renderer pegged, so it is the tooling on a loaded machine rather than the app). All of it is driven
+by tests through the real components instead. The two things only you can do remain: **export the
+story card once** ("Save image"), and **record a voice cheer** with a real microphone.
+
+— Claude Code

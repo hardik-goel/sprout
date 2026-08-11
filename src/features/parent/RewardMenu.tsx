@@ -142,8 +142,11 @@ export function RewardMenu() {
               </button>
             </div>
 
-            <label className="text-sm font-semibold text-muted">{t('common.name')}</label>
+            <label htmlFor="reward-name" className="text-sm font-semibold text-muted">
+              {t('common.name')}
+            </label>
             <input
+              id="reward-name"
               autoFocus
               value={title}
               onChange={(e) => setTitle(e.target.value)}

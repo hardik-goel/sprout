@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Camera, CheckCircle2, ChevronRight, Gift, Plus, Users } from 'lucide-react'
+import { Camera, CheckCircle2, ChevronRight, Gift, Plus, Users, X } from 'lucide-react'
 import { useStore } from '@/store'
 import { PageHeader } from '@/ui/PageHeader'
+import { ConfirmSheet } from '@/ui/ConfirmSheet'
 import { StreakFlame } from '@/ui/StreakFlame'
 import { jarProgress, pendingFulfilments, todayKey } from '@/domain'
 import { formatShortDate } from '@/i18n/format'
@@ -12,6 +14,8 @@ export function ParentHome() {
   const data = useStore((s) => s.data)
   const activeChild = useStore((s) => s.activeChild())
   const setActiveChild = useStore((s) => s.setActiveChild)
+  const removeTask = useStore((s) => s.removeTask)
+  const [removing, setRemoving] = useState<string | null>(null)
 
   if (!activeChild) {
     return (
@@ -214,11 +218,34 @@ export function ParentHome() {
                   </div>
                 </div>
                 <span className="chip bg-line text-muted">{t('task.todo')}</span>
+                {/* Assigning the wrong task was, until now, permanent. Only
+                    un-started tasks can go: an approved one is referenced by
+                    the ledger and is reversed, not deleted. */}
+                <button
+                  onClick={() => setRemoving(task.id)}
+                  className="shrink-0 text-muted"
+                  aria-label={t('home.removeTask')}
+                >
+                  <X size={16} />
+                </button>
               </div>
             ))}
           </div>
         )}
       </section>
+
+      <ConfirmSheet
+        open={removing !== null}
+        title={t('home.removeTaskTitle')}
+        body={t('home.removeTaskBody')}
+        confirmLabel={t('home.removeTaskCta')}
+        destructive
+        onCancel={() => setRemoving(null)}
+        onConfirm={() => {
+          if (removing) removeTask(removing)
+          setRemoving(null)
+        }}
+      />
 
       {/* Done today */}
       {approved.length > 0 && (

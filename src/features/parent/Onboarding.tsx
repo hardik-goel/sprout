@@ -57,9 +57,12 @@ export function Onboarding() {
         ) : (
           <div className="flex flex-1 flex-col">
             <div className="flex flex-1 flex-col justify-center">
-              <h1 className="text-2xl font-extrabold">{t('onboarding.nameQuestion')}</h1>
+              <label htmlFor="parent-name" className="text-2xl font-extrabold">
+                {t('onboarding.nameQuestion')}
+              </label>
               <p className="mt-1 text-muted">{t('onboarding.nameHint')}</p>
               <input
+                id="parent-name"
                 autoFocus
                 value={name}
                 onChange={(e) => setName(e.target.value)}

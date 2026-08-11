@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ChevronRight,
@@ -16,6 +17,7 @@ import {
 import { useStore } from '@/store'
 import { PageHeader } from '@/ui/PageHeader'
 import { PlusBadge } from '@/ui/PlusBadge'
+import { ConfirmSheet } from '@/ui/ConfirmSheet'
 import type { Feature } from '@/domain'
 import { t } from '@/i18n'
 
@@ -36,6 +38,7 @@ const LINKS: { to: string; icon: typeof Gift; key: string; feature?: Feature }[]
 export function More() {
   const can = useStore((s) => s.can)
   const resetAll = useStore((s) => s.resetAll)
+  const [confirming, setConfirming] = useState(false)
 
   return (
     <div className="pb-8">
@@ -52,16 +55,24 @@ export function More() {
           </Link>
         ))}
 
-        <button
-          className="btn-ghost mt-4 w-full text-muted"
-          onClick={() => {
-            if (confirm(t('more.resetConfirm'))) resetAll()
-          }}
-        >
+        <button className="btn-ghost mt-4 w-full text-muted" onClick={() => setConfirming(true)}>
           <RotateCcw size={16} /> {t('more.reset')}
         </button>
         <p className="text-center text-xs text-muted">{t('more.resetHint')}</p>
       </div>
+
+      <ConfirmSheet
+        open={confirming}
+        title={t('more.reset')}
+        body={t('more.resetConfirm')}
+        confirmLabel={t('more.resetConfirmCta')}
+        destructive
+        onCancel={() => setConfirming(false)}
+        onConfirm={() => {
+          setConfirming(false)
+          resetAll()
+        }}
+      />
     </div>
   )
 }

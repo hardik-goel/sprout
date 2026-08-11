@@ -334,7 +334,7 @@ Tests fail loudly if a Hindi key, a placeholder, or a task-template name goes mi
 ## Testing
 
 ```bash
-npm test          # 139 tests
+npm test          # 146 tests
 npm run test:watch
 ```
 
@@ -347,6 +347,7 @@ Four layers, each testing something different:
 | `src/i18n/__tests__/` | No missing key, no lost placeholder, no untranslated task template |
 | `src/features/__tests__/` | Every route mounts with real seeded data, and the core loop runs through the actual components |
 | `src/lib/__tests__/storyCard.test.ts` | The exported PNG's layout — text on the card, tiles not colliding with the closing line |
+| `src/ui/__tests__/` | The error boundary puts a way out on the screen, and its reseed clears only Sprout's keys |
 
 Domain tests run in plain Node; screen tests run in jsdom (see `vite.config.ts`
 `environmentMatchGlobs`).
@@ -451,6 +452,8 @@ Placeholders live in `.env.example`. **No fake keys anywhere.**
   nudge, not a rule.
 - **PWA icons are SVG,** not PNG. Installs fine; generate real PNGs before an app-store-grade launch.
 - **No E2E tests in a real browser.** Screen tests run in jsdom.
+- **Approved tasks cannot be deleted**, only reversed — deleting one would orphan its ledger events
+  and leave a hole in the growth album. Un-started tasks can be removed from Home.
 
 ---
 
@@ -463,6 +466,8 @@ Placeholders live in `.env.example`. **No fake keys anywhere.**
   suite will fail otherwise.
 - **New object-returning store selectors must be memoised** against the `AppData` snapshot.
 - **Comments explain *why*.** The code already says what.
+- **Use `ConfirmSheet`, never `window.confirm`.** Native dialogs are suppressed in some installed-PWA
+  contexts, which would let a destructive action fire with no prompt at all.
 
 See **PROGRESS.md** for the current state and the mock → real playbook, **DECISIONS.md** for why
 things are the way they are, and **MORNING-HANDOFF.md** for the session-by-session log including

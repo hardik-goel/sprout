@@ -100,7 +100,8 @@ interface Store {
   approveTask(taskId: string): CelebrationPayload | null
   rejectTask(taskId: string): void
   undoApproval(taskId: string): void
-  removeTask(taskId: string): void
+  /** False when the task is already approved — those are reversed, not deleted. */
+  removeTask(taskId: string): boolean
 
   // rewards
   addReward(r: { title: string; emoji: string; cost: number; tags: RewardTag[]; childId: string | null }): void
@@ -390,9 +391,18 @@ export const useStore = create<Store>((set, get) => {
 
     removeTask(taskId) {
       const task = get().data.tasks.find((t) => t.id === taskId)
-      if (task?.photoId) photoStore.remove(task.photoId)
+      if (!task) return false
+      // An approved task is referenced by its ledger events (`refId`) and by the
+      // growth album. Deleting it would leave points whose reason no longer
+      // exists and a hole in the album. Approvals are reversed with
+      // `undoApproval`, which appends rather than deletes; only an unapproved
+      // task is really just a plan that changed.
+      if (task.status === 'approved') return false
+
+      if (task.photoId) photoStore.remove(task.photoId)
       set((s) => ({ data: { ...s.data, tasks: s.data.tasks.filter((t) => t.id !== taskId) } }))
       get().persist()
+      return true
     },
 
     addReward(r) {

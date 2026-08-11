@@ -369,7 +369,22 @@ export const hi: Record<string, string> = {
   'more.children': 'बच्चे',
   'more.upgrade': 'Sprout Plus',
   'more.reset': 'डेमो डेटा रीसेट करें',
-  'more.resetConfirm': 'सारा डेमो डेटा फिर से शुरुआती परिवार पर ले जाएँ?',
+  'more.resetConfirm': 'इससे हर काम, फ़ोटो, शाबाशी और पॉइंट मिट जाएँगे और शुरुआती परिवार वापस आ जाएगा। यह वापस नहीं हो सकता।',
+  'more.resetConfirmCta': 'सब रीसेट करें',
+  'common.cancel': 'रहने दें',
+
+  // --- remove an assigned task ---
+  'home.removeTask': 'यह काम हटाएँ',
+  'home.removeTaskTitle': 'यह काम हटाएँ?',
+  'home.removeTaskBody':
+    'यह आज की सूची से हट जाएगा। जो काम मंज़ूर हो चुके हैं वे नहीं हटते 2014 उन्हें मंज़ूरी वाली स्क्रीन से वापस लें।',
+  'home.removeTaskCta': 'हटा दें',
+
+  // --- crash screen ---
+  'crash.title': 'कुछ गड़बड़ हो गई',
+  'crash.body': 'Sprout में एक गलती आ गई और यह स्क्रीन नहीं बन पाई। आपके पॉइंट्स सुरक्षित हैं।',
+  'crash.reload': 'होम पर वापस',
+  'crash.reset': 'ऐप का डेटा रीसेट करें',
   'more.resetHint': 'लोकल डेटा हटाकर शुरुआती परिवार (वीर, इरा, आन्या) फिर से लोड करता है।',
 
   // --- upgrade ---

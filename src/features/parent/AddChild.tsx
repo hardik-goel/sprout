@@ -47,8 +47,11 @@ export function AddChild() {
       <PageHeader title={t('child.add')} subtitle={t('child.ageRange')} back="/parent" />
       <div className="px-5 pb-12">
         <div className="card p-5">
-          <label className="text-sm font-semibold text-muted">{t('common.name')}</label>
+          <label htmlFor="child-name" className="text-sm font-semibold text-muted">
+            {t('common.name')}
+          </label>
           <input
+            id="child-name"
             autoFocus
             value={name}
             onChange={(e) => setName(e.target.value)}

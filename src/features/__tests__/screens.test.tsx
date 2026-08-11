@@ -363,6 +363,59 @@ describe('still to give', () => {
   })
 })
 
+describe('removing an assigned task', () => {
+  it('takes an un-started task off today, behind a confirmation', async () => {
+    const user = userEvent.setup()
+    open('/parent')
+
+    const todo = useStore
+      .getState()
+      .data.tasks.find((x) => x.childId === 'child_vir' && x.date === todayKey() && x.status === 'todo')!
+
+    await user.click(screen.getAllByRole('button', { name: 'Remove this task' })[0])
+    // Nothing happens until it is confirmed.
+    expect(useStore.getState().data.tasks.some((x) => x.id === todo.id)).toBe(true)
+
+    await user.click(screen.getByRole('button', { name: 'Remove it' }))
+    await waitFor(() =>
+      expect(useStore.getState().data.tasks.some((x) => x.id === todo.id)).toBe(false),
+    )
+  })
+
+  it('cancelling leaves the task alone', async () => {
+    const user = userEvent.setup()
+    const before = useStore.getState().data.tasks.length
+    open('/parent')
+
+    await user.click(screen.getAllByRole('button', { name: 'Remove this task' })[0])
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(useStore.getState().data.tasks).toHaveLength(before)
+  })
+
+  it('refuses to delete an approved task, because the ledger points at it', () => {
+    const approved = useStore
+      .getState()
+      .data.tasks.find((x) => x.childId === 'child_vir' && x.status === 'approved')!
+
+    // Deleting it would leave TASK_APPROVED events whose refId resolves to
+    // nothing, and a hole in the growth album. Approvals are undone, not erased.
+    expect(useStore.getState().removeTask(approved.id)).toBe(false)
+    expect(useStore.getState().data.tasks.some((x) => x.id === approved.id)).toBe(true)
+
+    // And the home screen doesn't offer the option in the first place.
+    open('/parent')
+    const removeButtons = screen.queryAllByRole('button', { name: 'Remove this task' })
+    expect(removeButtons.length).toBe(
+      useStore
+        .getState()
+        .data.tasks.filter(
+          (x) => x.childId === 'child_vir' && x.date === todayKey() && x.status === 'todo',
+        ).length,
+    )
+  })
+})
+
 describe('voice cheers', () => {
   it('records a cheer, lists it, and plays it on the kid celebration', async () => {
     const user = userEvent.setup()
