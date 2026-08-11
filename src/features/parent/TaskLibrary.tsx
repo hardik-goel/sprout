@@ -6,7 +6,7 @@ import { PageHeader } from '@/ui/PageHeader'
 import { PlusBadge } from '@/ui/PlusBadge'
 import { ageFitDailyTaskCap, ageFitTaskPoints, isAgeAppropriate, todayKey } from '@/domain'
 import type { TaskTemplate } from '@/domain/types'
-import { t } from '@/i18n'
+import { t, taskTitle } from '@/i18n'
 
 export function TaskLibrary() {
   const data = useStore((s) => s.data)
@@ -30,8 +30,8 @@ export function TaskLibrary() {
     const map = new Map<string, { pack: 'basic' | 'plus'; items: TaskTemplate[] }>()
     for (const tpl of data.templates) {
       if (activeChild && !isAgeAppropriate(tpl, activeChild.age)) continue
-      if (!map.has(tpl.packName)) map.set(tpl.packName, { pack: tpl.pack, items: [] })
-      map.get(tpl.packName)!.items.push(tpl)
+      if (!map.has(tpl.packKey)) map.set(tpl.packKey, { pack: tpl.pack, items: [] })
+      map.get(tpl.packKey)!.items.push(tpl)
     }
     return [...map.entries()]
   }, [data.templates, activeChild])
@@ -68,12 +68,12 @@ export function TaskLibrary() {
         </p>
       )}
       <div className="space-y-6 px-5">
-        {packs.map(([packName, { pack, items }]) => {
+        {packs.map(([packKey, { pack, items }]) => {
           const locked = pack === 'plus' && !can.can('indiaPacks')
           return (
-            <section key={packName}>
+            <section key={packKey}>
               <div className="mb-2 flex items-center gap-2">
-                <h2 className="text-sm font-bold uppercase tracking-wide text-muted">{packName}</h2>
+                <h2 className="text-sm font-bold uppercase tracking-wide text-muted">{t(packKey)}</h2>
                 {pack === 'plus' && <PlusBadge />}
               </div>
               <div className="space-y-2">
@@ -87,7 +87,7 @@ export function TaskLibrary() {
                     >
                       <span className="text-2xl">{tpl.emoji}</span>
                       <div className="flex-1">
-                        <div className="font-bold">{tpl.title}</div>
+                        <div className="font-bold">{taskTitle(tpl.id, tpl.title)}</div>
                         <div className="text-xs text-muted">
                           {t(`task.category.${tpl.category}`)} · {t('common.plusPts', { n: pts })}
                         </div>

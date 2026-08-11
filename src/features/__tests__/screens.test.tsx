@@ -9,6 +9,7 @@ import { MemoryRouter } from 'react-router-dom'
 import App from '@/App'
 import { useStore } from '@/store'
 import { balance, streakInfo, todayKey } from '@/domain'
+import { photoStore } from '@/lib/photoStore'
 
 function open(route: string) {
   return render(
@@ -35,6 +36,8 @@ describe('parent world', () => {
     ['/parent/circle', /Family circle/],
     ['/parent/gift', /Gift points/],
     ['/parent/children', /Children/],
+    ['/parent/history', /Points history/],
+    ['/parent/language', /Language/],
     ['/parent/more', /Everything else/],
     ['/parent/upgrade', /Sprout Plus/],
     ['/parent/add-child', /Add a child/],
@@ -139,16 +142,22 @@ describe('the core loop', () => {
     const childId = 'child_vir'
     open('/kid/rewards')
 
-    // Sticker pack (30) is affordable at 90 points — click the button in its card.
-    const card = screen
+    // The seeded sticker pack is already redeemed, so it offers no button.
+    const sticker = screen
       .getAllByText('Sticker pack')[0]
+      .closest('[class*="rounded-kid"]') as HTMLElement
+    expect(within(sticker).queryByRole('button', { name: 'Get it!' })).toBeNull()
+
+    // Extra bedtime story (25) is affordable at 90 points.
+    const card = screen
+      .getAllByText('Extra bedtime story')[0]
       .closest('[class*="rounded-kid"]') as HTMLElement
     await user.click(within(card).getByRole('button', { name: 'Get it!' }))
 
     await waitFor(() => {
       const data = useStore.getState().data
-      expect(balance(data.ledger, childId)).toBe(60)
-      expect(data.rewards.find((r) => r.id === 'rw_sticker')!.redeemed).toBe(true)
+      expect(balance(data.ledger, childId)).toBe(65)
+      expect(data.rewards.find((r) => r.id === 'rw_story')!.redeemed).toBe(true)
     })
   })
 
@@ -178,6 +187,197 @@ describe('the core loop', () => {
     }
     expect(totalGifted()).toBe(50)
     expect(screen.getByRole('button', { name: /Weekly cap reached/ })).toBeDisabled()
+  })
+})
+
+describe('language (A4)', () => {
+  it('switches the whole app to Hindi and back, and persists the choice', async () => {
+    const user = userEvent.setup()
+    open('/parent/language')
+
+    await user.click(screen.getByRole('button', { name: /हिंदी/ }))
+    await waitFor(() => expect(useStore.getState().data.locale).toBe('hi'))
+    // The screen it is on re-renders in Hindi immediately.
+    expect(screen.getByText('भाषा')).toBeInTheDocument()
+
+    cleanupRender()
+    open('/parent')
+    expect(screen.getByText(/नमस्ते, Aanya/)).toBeInTheDocument()
+    expect(screen.getByText(/आज के काम/)).toBeInTheDocument()
+
+    cleanupRender()
+    open('/kid')
+    expect(screen.getByText(/मेरा बगीचा →/)).toBeInTheDocument()
+
+    cleanupRender()
+    open('/parent/language')
+    await user.click(screen.getByRole('button', { name: /English/ }))
+    await waitFor(() => expect(useStore.getState().data.locale).toBe('en'))
+  })
+
+  it('translates the family story, not just the chrome', () => {
+    useStore.getState().setLocale('hi')
+    try {
+      open('/parent/story')
+      // The child's own name is never translated — it appears in the card title
+      // and again inside a generated sentence.
+      expect(screen.getAllByText(/Vir/).length).toBeGreaterThan(0)
+      // The generated sentences come from the Hindi dictionary, not English.
+      expect(screen.queryByText(/tasks finished/)).not.toBeInTheDocument()
+      expect(screen.getAllByText(/पॉइंट्स|⭐/).length).toBeGreaterThan(0)
+      expect(screen.getAllByText(/हफ़्ता|सप्ताह/).length).toBeGreaterThan(0)
+    } finally {
+      // Restore even if an expectation throws, or every later test runs in Hindi.
+      useStore.getState().setLocale('en')
+    }
+  })
+})
+
+describe('points history', () => {
+  it('explains the balance entry by entry, newest first', () => {
+    open('/parent/history')
+    const ledger = useStore.getState().data.ledger.filter((e) => e.childId === 'child_vir')
+
+    // The header shows the current balance, and every event has a row.
+    expect(screen.getByText('90')).toBeInTheDocument()
+    expect(screen.getAllByText(/Task approved/).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Points gifted/)).toBeInTheDocument()
+    expect(screen.getByText(/Reward redeemed/)).toBeInTheDocument()
+    expect(screen.getByText(/Carried over from the sticker chart/)).toBeInTheDocument()
+    expect(screen.getAllByText(/balance -?\d+/).length).toBe(ledger.length)
+
+    // The running balance is never negative: the carried-over opening entry is
+    // dated before any earning, so the story reads forwards without going
+    // underwater. (A negative here means the seed's opening entry moved.)
+    const balances = screen
+      .getAllByText(/balance -?\d+/)
+      .map((el) => Number(/balance (-?\d+)/.exec(el.textContent!)![1]))
+    expect(balances.every((b) => b >= 0)).toBe(true)
+    // Newest first: the first row's balance is the current one.
+    expect(balances[0]).toBe(90)
+  })
+
+  it('shows an undo as its own entry rather than erasing the original', async () => {
+    const user = userEvent.setup()
+    const task = useStore
+      .getState()
+      .data.tasks.find((x) => x.childId === 'child_vir' && x.status === 'pending')!
+
+    open(`/parent/approve/${task.id}`)
+    await user.click(screen.getByText(new RegExp(`Approve · \\+${task.points} pts`)))
+    await waitFor(() => expect(screen.getByText(/Approved!/)).toBeInTheDocument())
+    await user.click(screen.getByText(/Undo this approval/))
+    cleanupRender()
+
+    open('/parent/history')
+    expect(screen.getAllByText(/Adjustment/).length).toBeGreaterThan(0)
+    expect(screen.getByText('90')).toBeInTheDocument() // back where it started
+  })
+})
+
+describe('points cannot be credited twice', () => {
+  it('refuses to send an already-approved task back to "waiting"', async () => {
+    const user = userEvent.setup()
+    const task = useStore
+      .getState()
+      .data.tasks.find((x) => x.childId === 'child_vir' && x.status === 'pending')!
+
+    open(`/parent/approve/${task.id}`)
+    await user.click(screen.getByText(new RegExp(`Approve · \\+${task.points} pts`)))
+    await waitFor(() =>
+      expect(useStore.getState().data.tasks.find((x) => x.id === task.id)!.status).toBe('approved'),
+    )
+    const after = balance(useStore.getState().data.ledger, 'child_vir')
+    cleanupRender()
+
+    // The kid's "I did it!" screen is still reachable by going back. Marking it
+    // done again must not reopen an approved task — a second approval would
+    // credit the same points twice.
+    await useStore.getState().markDone(task.id, null)
+    expect(useStore.getState().data.tasks.find((x) => x.id === task.id)!.status).toBe('approved')
+
+    useStore.getState().approveTask(task.id)
+    expect(balance(useStore.getState().data.ledger, 'child_vir')).toBe(after)
+  })
+
+  it('shows the approved state instead of a dead Approve button', async () => {
+    const user = userEvent.setup()
+    const task = useStore
+      .getState()
+      .data.tasks.find((x) => x.childId === 'child_vir' && x.status === 'pending')!
+
+    open(`/parent/approve/${task.id}`)
+    await user.click(screen.getByText(new RegExp(`Approve · \\+${task.points} pts`)))
+    await waitFor(() => expect(screen.getByText(/Approved!/)).toBeInTheDocument())
+    cleanupRender()
+
+    // Reopening the same URL later lands on the approved view, not the form.
+    open(`/parent/approve/${task.id}`)
+    expect(screen.getByText(/Approved!/)).toBeInTheDocument()
+    expect(screen.queryByText(/Approve · \+/)).toBeNull()
+  })
+
+  it('drops the photo when a task is sent back to try again', async () => {
+    const user = userEvent.setup()
+    const task = useStore
+      .getState()
+      .data.tasks.find((x) => x.childId === 'child_vir' && x.status === 'pending')!
+    expect(task.photoId).toBeTruthy()
+
+    open(`/parent/approve/${task.id}`)
+    await user.click(screen.getByText(/Ask to try again/))
+
+    const after = useStore.getState().data.tasks.find((x) => x.id === task.id)!
+    expect(after.status).toBe('todo')
+    expect(after.photoId).toBeNull()
+    expect(photoStore.url(task.photoId)).toBeNull()
+  })
+})
+
+describe('still to give', () => {
+  it('surfaces a redeemed-but-unhanded-over reward on the parent home', async () => {
+    const user = userEvent.setup()
+    open('/parent')
+
+    expect(screen.getByText(/Still to give/)).toBeInTheDocument()
+    expect(screen.getByText('Sticker pack')).toBeInTheDocument()
+    expect(screen.getByText(/Vir spent points on this on/)).toBeInTheDocument()
+
+    await user.click(screen.getByText('Sticker pack'))
+    await user.click(screen.getByText(/Mark as given/))
+    await waitFor(() =>
+      expect(useStore.getState().data.rewards.find((r) => r.id === 'rw_sticker')!.fulfilled).toBe(
+        true,
+      ),
+    )
+    cleanupRender()
+
+    // Once given, it leaves the queue.
+    open('/parent')
+    expect(screen.queryByText(/Still to give/)).toBeNull()
+  })
+})
+
+describe('hindi', () => {
+  it('translates the task names themselves, not just the chrome', () => {
+    useStore.getState().setLocale('hi')
+    try {
+      open('/kid')
+      // "Brush teeth" is our content, so it is translated…
+      expect(screen.queryByText('Brush teeth')).toBeNull()
+      expect(screen.getAllByText('दाँत ब्रश करना').length).toBeGreaterThan(0)
+      cleanupRender()
+
+      // …while a reward the parent typed is shown exactly as they typed it.
+      open('/kid/rewards')
+      expect(screen.getAllByText('Zoo trip').length).toBeGreaterThan(0)
+      cleanupRender()
+
+      open('/parent/tasks')
+      expect(screen.getAllByText('रोज़ की बातें').length).toBeGreaterThan(0)
+    } finally {
+      useStore.getState().setLocale('en')
+    }
   })
 })
 

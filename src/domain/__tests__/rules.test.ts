@@ -66,6 +66,7 @@ describe('age-fit', () => {
       basePoints: 15,
       pack: 'basic',
       packName: 'Big Kid Routines',
+      packKey: 'pack.bigKid',
       minAge: 5,
       maxAge: 8,
     }

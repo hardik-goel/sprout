@@ -5,8 +5,9 @@ import { useStore } from '@/store'
 import { PageHeader } from '@/ui/PageHeader'
 import { PlusBadge } from '@/ui/PlusBadge'
 import { PlusGate } from '@/ui/PlusGate'
-import { habitGrids, shortDate, weekStats } from '@/domain'
-import { t } from '@/i18n'
+import { habitGrids, weekStats } from '@/domain'
+import { formatRange } from '@/i18n/format'
+import { t, taskTitle } from '@/i18n'
 
 export function WeeklyDigest() {
   return (
@@ -43,7 +44,7 @@ function DigestBody() {
       <div className="card p-5">
         <div className="flex items-center gap-2 text-sm text-muted">
           <CalendarDays size={16} />
-          {shortDate(stats.from)} – {shortDate(stats.to)}
+          {formatRange(stats.from, stats.to)}
         </div>
         <p className="mt-3 text-lg font-bold leading-snug">
           {t('digest.headline', {
@@ -68,7 +69,7 @@ function DigestBody() {
       {topHabit && topHabit.doneCount > 0 && (
         <div className="rounded-card bg-sprout/5 p-4 text-sm">
           <span className="font-bold">{t('digest.habitOfWeek')}</span> {topHabit.emoji}{' '}
-          {topHabit.title} —{' '}
+          {taskTitle(topHabit.templateId, topHabit.title)} —{' '}
           {t('digest.habitDetail', { n: topHabit.doneCount, name: activeChild.name })}
         </div>
       )}

@@ -4,33 +4,43 @@
 // actually say it out loud. This is the thing that gets forwarded to the family
 // WhatsApp group, which is also our cheapest marketing.
 //
-// Pure text generation: no dates fetched, no randomness that can't be replayed
-// (variant choice is a hash of childId + week, so the same week reads the same).
+// The domain stays pure and language-free: it decides WHICH sentences the week
+// deserves and with what numbers, and returns i18n keys + vars. The UI layer
+// turns those into English or Hindi. Variant choice is a hash of childId + week,
+// so the same week always reads the same.
 
 import type { AppData, Child, Reward } from './types'
 import { balance } from './ledger'
 import { weekStats, habitGrids, type WeekStats } from './insights'
-import { shortDate, todayKey } from './dates'
+import { todayKey } from './dates'
 import { jarProgress } from './rewards'
 
+/** A translatable fragment: a dictionary key plus its interpolation values. */
+export interface Phrase {
+  key: string
+  /**
+   * A value may itself be `{ key }` — a nested dictionary lookup. That is how
+   * the domain names one of our own task templates without owning a word of
+   * any language.
+   */
+  vars?: Record<string, string | number | { key: string }>
+}
+
 export interface FamilyStory {
-  title: string
-  subtitle: string
-  /** Two to five short sentences — the story itself. */
-  lines: string[]
-  stats: { label: string; value: string; emoji: string }[]
-  goalLine: string | null
-  closing: string
+  title: Phrase
+  /** Date range, already formatted by the caller's locale-aware formatter. */
+  from: string
+  to: string
+  lines: Phrase[]
+  stats: { labelKey: string; value: string; emoji: string }[]
+  goalLine: Phrase | null
+  closing: Phrase
   emoji: string
-  /** Plus adds the habit spotlight + goal countdown; free gets the core three. */
+  /** Plus adds the goal countdown and habit spotlight; free gets the core. */
   rich: boolean
 }
 
-const OPENERS = [
-  (n: string) => `What a week for ${n}!`,
-  (n: string) => `${n} showed up this week.`,
-  (n: string) => `Big week in ${n}'s garden.`,
-]
+const OPENER_KEYS = ['story.opener.1', 'story.opener.2', 'story.opener.3']
 
 function variant(seed: string, count: number): number {
   let h = 0
@@ -38,9 +48,9 @@ function variant(seed: string, count: number): number {
   return h % count
 }
 
-function streakLine(name: string, s: WeekStats): string | null {
-  if (s.streak >= 3) return `${s.streak} days in a row now — the streak is holding. 🔥`
-  if (s.activeDays >= 3) return `${name} was active on ${s.activeDays} of the last 7 days.`
+function streakPhrase(name: string, s: WeekStats): Phrase | null {
+  if (s.streak >= 3) return { key: 'story.streak', vars: { n: s.streak } }
+  if (s.activeDays >= 3) return { key: 'story.activeDays', vars: { name, n: s.activeDays } }
   return null
 }
 
@@ -55,66 +65,87 @@ export function buildFamilyStory(
   const goal: Reward | undefined = data.rewards.find((r) => r.id === child.goalId)
   const bal = balance(data.ledger, child.id)
 
-  const opener = OPENERS[variant(child.id + stats.to, OPENERS.length)](child.name)
+  const lines: Phrase[] = [
+    {
+      key: OPENER_KEYS[variant(child.id + stats.to, OPENER_KEYS.length)],
+      vars: { name: child.name },
+    },
+  ]
 
-  const lines: string[] = [opener]
   lines.push(
     stats.tasksDone > 0
-      ? `${stats.tasksDone} task${stats.tasksDone === 1 ? '' : 's'} finished and ${stats.pointsEarned} ⭐ earned.`
-      : `A quiet week — no tasks finished yet. Next week is a fresh start. 🌱`,
+      ? { key: 'story.tasksAndPoints', vars: { tasks: stats.tasksDone, points: stats.pointsEarned } }
+      : { key: 'story.quietWeek' },
   )
-  const sl = streakLine(child.name, stats)
-  if (sl) lines.push(sl)
+
+  const streak = streakPhrase(child.name, stats)
+  if (streak) lines.push(streak)
+
   if (stats.screenFreeWins > 0) {
-    lines.push(
-      `${stats.screenFreeWins} screen-free win${stats.screenFreeWins === 1 ? '' : 's'} — reading, moving, helping instead of a screen. 📵`,
-    )
+    lines.push({ key: 'story.screenFree', vars: { n: stats.screenFreeWins } })
   }
 
-  let goalLine: string | null = null
+  let goalLine: Phrase | null = null
   if (goal) {
     const { remaining, pct } = jarProgress(bal, goal.cost)
     goalLine =
       remaining === 0
-        ? `${goal.title} ${goal.emoji} is unlocked — time to make it happen!`
-        : `${remaining} ⭐ away from ${goal.title} ${goal.emoji} (${pct}% there).`
+        ? { key: 'story.goalReached', vars: { title: goal.title, emoji: goal.emoji } }
+        : { key: 'story.goalAway', vars: { n: remaining, title: goal.title, emoji: goal.emoji, pct } }
     if (rich) lines.push(goalLine)
   }
 
   if (rich) {
-    const grids = habitGrids(data, child.id, 7, today)
-    const best = grids[0]
+    const best = habitGrids(data, child.id, 7, today)[0]
     if (best && best.doneCount >= 3) {
-      lines.push(`Habit of the week: ${best.emoji} ${best.title}, ${best.doneCount}/7 days.`)
+      lines.push({
+        key: 'story.habitOfWeek',
+        // The habit's name is our content, so it goes out as a key for the UI
+        // layer to resolve — the domain never picks a language.
+        vars: {
+          emoji: best.emoji,
+          title: { key: `task.title.${best.templateId}` },
+          n: best.doneCount,
+        },
+      })
     }
   }
 
   return {
-    title: `${child.name}'s week`,
-    subtitle: `${shortDate(stats.from)} – ${shortDate(stats.to)}`,
+    title: { key: 'story.cardTitle', vars: { name: child.name } },
+    from: stats.from,
+    to: stats.to,
     lines,
     stats: [
-      { label: 'Tasks done', value: String(stats.tasksDone), emoji: '✅' },
-      { label: 'Points earned', value: String(stats.pointsEarned), emoji: '⭐' },
-      { label: 'Screen-free wins', value: String(stats.screenFreeWins), emoji: '📵' },
-      ...(rich ? [{ label: 'Best streak', value: `${stats.bestStreak}d`, emoji: '🔥' }] : []),
+      { labelKey: 'digest.tasksDone', value: String(stats.tasksDone), emoji: '✅' },
+      { labelKey: 'digest.points', value: String(stats.pointsEarned), emoji: '⭐' },
+      { labelKey: 'digest.screenFree', value: String(stats.screenFreeWins), emoji: '📵' },
+      ...(rich ? [{ labelKey: 'insights.best', value: `${stats.bestStreak}d`, emoji: '🔥' }] : []),
     ],
     goalLine,
-    closing: rich ? `Shabaash, ${child.name}! 🌟` : `Grown with Sprout 🌱`,
+    closing: rich
+      ? { key: 'story.closingRich', vars: { name: child.name } }
+      : { key: 'story.closingFree' },
     emoji: child.avatar,
     rich,
   }
 }
 
-/** Plain-text version for a WhatsApp share sheet. */
-export function storyToText(story: FamilyStory): string {
+/** Turn a story into shareable plain text using the caller's translator. */
+export function storyToText(
+  story: FamilyStory,
+  translate: (key: string, vars?: Phrase['vars']) => string,
+  range: string,
+): string {
   return [
-    `🌱 ${story.title} (${story.subtitle})`,
+    `🌱 ${translate(story.title.key, story.title.vars)} (${range})`,
     '',
-    ...story.lines,
+    ...story.lines.map((l) => translate(l.key, l.vars)),
     '',
-    story.stats.map((s) => `${s.emoji} ${s.value} ${s.label.toLowerCase()}`).join('  ·  '),
+    story.stats
+      .map((s) => `${s.emoji} ${s.value} ${translate(s.labelKey).toLowerCase()}`)
+      .join('  ·  '),
     '',
-    story.closing,
+    translate(story.closing.key, story.closing.vars),
   ].join('\n')
 }

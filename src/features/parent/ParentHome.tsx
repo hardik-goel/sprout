@@ -1,10 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Camera, CheckCircle2, ChevronRight, Plus, Users } from 'lucide-react'
+import { Camera, CheckCircle2, ChevronRight, Gift, Plus, Users } from 'lucide-react'
 import { useStore } from '@/store'
 import { PageHeader } from '@/ui/PageHeader'
 import { StreakFlame } from '@/ui/StreakFlame'
-import { jarProgress, todayKey } from '@/domain'
-import { t } from '@/i18n'
+import { jarProgress, pendingFulfilments, todayKey } from '@/domain'
+import { formatShortDate } from '@/i18n/format'
+import { t, taskTitle } from '@/i18n'
 
 export function ParentHome() {
   const nav = useNavigate()
@@ -30,6 +31,8 @@ export function ParentHome() {
   const pending = todays.filter((t) => t.status === 'pending')
   const todo = todays.filter((t) => t.status === 'todo')
   const approved = todays.filter((t) => t.status === 'approved')
+  // Rewards already paid for out of the jar but not yet actually handed over.
+  const owed = pendingFulfilments(data.rewards, data.ledger)
 
   return (
     <div className="pb-6">
@@ -131,7 +134,7 @@ export function ParentHome() {
               >
                 <span className="text-2xl">{task.emoji}</span>
                 <div className="flex-1">
-                  <div className="font-bold">{task.title}</div>
+                  <div className="font-bold">{taskTitle(task.templateId, task.title)}</div>
                   <div className="text-xs text-muted">
                     {t('home.tapToReview', { pts: task.points })}
                   </div>
@@ -142,6 +145,42 @@ export function ParentHome() {
                 <ChevronRight size={18} className="text-muted" />
               </button>
             ))}
+          </div>
+        </section>
+      )}
+
+      {/* Still to give — the promise the points already bought */}
+      {owed.length > 0 && (
+        <section className="mt-6 px-5">
+          <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-muted">
+            {t('home.stillToGive')}
+          </h2>
+          <div className="space-y-2">
+            {owed.map(({ reward, childId, date }) => {
+              const who = data.children.find((c) => c.id === childId)
+              return (
+                <button
+                  key={reward.id}
+                  onClick={() => nav(`/parent/reward/${reward.id}`)}
+                  className="card flex w-full items-center gap-3 p-4 text-left"
+                >
+                  <span className="text-2xl">{reward.emoji}</span>
+                  <div className="flex-1">
+                    <div className="font-bold">{reward.title}</div>
+                    <div className="text-xs text-muted">
+                      {t('home.redeemedBy', {
+                        name: who?.name ?? '',
+                        date: formatShortDate(date),
+                      })}
+                    </div>
+                  </div>
+                  <span className="chip bg-gold/15 text-gold">
+                    <Gift size={14} /> {t('home.give')}
+                  </span>
+                  <ChevronRight size={18} className="text-muted" />
+                </button>
+              )
+            })}
           </div>
         </section>
       )}
@@ -169,7 +208,7 @@ export function ParentHome() {
               <div key={task.id} className="card flex items-center gap-3 p-4">
                 <span className="text-2xl">{task.emoji}</span>
                 <div className="flex-1">
-                  <div className="font-bold">{task.title}</div>
+                  <div className="font-bold">{taskTitle(task.templateId, task.title)}</div>
                   <div className="text-xs text-muted">
                     {t('home.waitingOn', { pts: task.points, name: activeChild.name })}
                   </div>
@@ -191,7 +230,7 @@ export function ParentHome() {
             {approved.map((task) => (
               <div key={task.id} className="flex items-center gap-3 rounded-card bg-sprout/5 p-4">
                 <CheckCircle2 size={22} className="text-sprout" />
-                <div className="flex-1 font-semibold">{task.title}</div>
+                <div className="flex-1 font-semibold">{taskTitle(task.templateId, task.title)}</div>
                 <span className="text-sm font-bold text-sprout">+{task.points}</span>
               </div>
             ))}

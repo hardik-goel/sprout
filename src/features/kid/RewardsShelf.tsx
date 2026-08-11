@@ -1,12 +1,10 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Check, Star, Target } from 'lucide-react'
 import { useStore } from '@/store'
 import { jarProgress, rewardsForChild } from '@/domain'
 import { t } from '@/i18n'
 
 export function RewardsShelf() {
-  const nav = useNavigate()
   const data = useStore((s) => s.data)
   const child = useStore((s) => s.activeChild())
   const setGoal = useStore((s) => s.setGoal)
@@ -17,13 +15,15 @@ export function RewardsShelf() {
 
   const rewards = rewardsForChild(data.rewards, child.id)
 
+  // Stay in the kid world after redeeming — see the note in MyJar. The parent
+  // is told about it through the "still to give" queue on their home screen.
   function get(rewardId: string, cost: number) {
     if (child!.points < cost) return
     const ok = redeemReward(child!.id, rewardId)
     if (ok) {
       const r = data.rewards.find((x) => x.id === rewardId)
       setToast(t('kid.yay', { emoji: r?.emoji ?? '', title: r?.title ?? '' }))
-      setTimeout(() => nav(`/parent/reward/${rewardId}`), 1400)
+      setTimeout(() => setToast(null), 2600)
     }
   }
 

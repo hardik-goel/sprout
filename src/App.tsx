@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useStore } from './store'
+import { setLocale } from './i18n'
 import { ParentLayout, KidLayout } from './ui/Layouts'
 
 // Parent screens
@@ -20,6 +21,8 @@ import { GrowthAlbum } from './features/parent/GrowthAlbum'
 import { FamilyStory } from './features/parent/FamilyStory'
 import { JarSettings } from './features/parent/JarSettings'
 import { More } from './features/parent/More'
+import { PointsHistory } from './features/parent/PointsHistory'
+import { Language } from './features/parent/Language'
 
 // Kid screens
 import { MyDay } from './features/kid/MyDay'
@@ -31,6 +34,11 @@ import { RewardsShelf } from './features/kid/RewardsShelf'
 
 export default function App() {
   const onboarded = useStore((s) => s.data.onboarded)
+  const locale = useStore((s) => s.data.locale)
+
+  // App subscribes to the locale and applies it before anything renders, so a
+  // language change re-renders the whole tree with the new dictionary.
+  setLocale(locale)
 
   return (
     <Routes>
@@ -55,6 +63,8 @@ export default function App() {
         <Route path="/parent/circle" element={<FamilyCircle />} />
         <Route path="/parent/gift" element={<GiftPoints />} />
         <Route path="/parent/children" element={<Children />} />
+        <Route path="/parent/history" element={<PointsHistory />} />
+        <Route path="/parent/language" element={<Language />} />
         <Route path="/parent/more" element={<More />} />
         <Route path="/parent/upgrade" element={<Upgrade />} />
       </Route>

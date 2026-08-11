@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ArrowRight, Lock } from 'lucide-react'
 import { useStore } from '@/store'
 import { PageHeader } from '@/ui/PageHeader'
 import { AvatarPicker } from '@/ui/AvatarPicker'
@@ -10,9 +10,31 @@ import { t } from '@/i18n'
 export function AddChild() {
   const nav = useNavigate()
   const addChild = useStore((s) => s.addChild)
+  const childCount = useStore((s) => s.data.children.length)
+  const can = useStore((s) => s.can)
   const [name, setName] = useState('')
   const [age, setAge] = useState(4)
   const [avatar, setAvatar] = useState('🦄')
+
+  // The Children screen hides the button on a free account, but the route is
+  // reachable directly. Entitlements have to be checked where the write happens,
+  // not only where the button is drawn.
+  if (!can.canAddChild(childCount)) {
+    return (
+      <div className="app-frame bg-paper text-ink min-h-screen">
+        <PageHeader title={t('child.add')} back="/parent/children" />
+        <div className="px-5">
+          <div className="card flex flex-col items-center gap-3 p-8 text-center">
+            <Lock size={28} className="text-gold" />
+            <p className="text-sm text-muted">{t('children.gate.blurb')}</p>
+            <Link to="/parent/upgrade" className="btn-gold mt-1">
+              {t('children.addWithPlus')}
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   function save() {
     if (!name.trim()) return

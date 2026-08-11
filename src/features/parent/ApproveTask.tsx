@@ -6,7 +6,7 @@ import { PageHeader } from '@/ui/PageHeader'
 import { GardenVisual } from '@/ui/GardenVisual'
 import { photoStore } from '@/lib/photoStore'
 import { unlockedFlowers } from '@/domain'
-import { t } from '@/i18n'
+import { t, taskTitle } from '@/i18n'
 
 export function ApproveTask() {
   const { taskId } = useParams()
@@ -44,7 +44,10 @@ export function ApproveTask() {
     setDone(false)
   }
 
-  if (done) {
+  // Reopening an already-approved task (back button, a stale link) must show the
+  // approved state, not an Approve button that silently does nothing because the
+  // store refuses to credit the same task twice.
+  if (done || task.status === 'approved') {
     return (
       <div className="flex min-h-screen flex-col px-5 pb-10">
         <PageHeader title={t('approve.approved')} back="/parent" />
@@ -105,7 +108,7 @@ export function ApproveTask() {
           <div className="flex items-center gap-3 p-5">
             <span className="text-3xl">{task.emoji}</span>
             <div className="flex-1">
-              <div className="text-lg font-extrabold">{task.title}</div>
+              <div className="text-lg font-extrabold">{taskTitle(task.templateId, task.title)}</div>
               <div className="text-sm text-muted">{t('approve.worth', { pts: task.points })}</div>
             </div>
           </div>

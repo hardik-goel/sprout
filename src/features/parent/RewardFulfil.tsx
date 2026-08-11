@@ -2,7 +2,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Check, Gift, PartyPopper } from 'lucide-react'
 import { useStore } from '@/store'
 import { PageHeader } from '@/ui/PageHeader'
-import { shortDate } from '@/domain'
+import { formatShortDate } from '@/i18n/format'
 import { t } from '@/i18n'
 
 export function RewardFulfil() {
@@ -32,7 +32,7 @@ export function RewardFulfil() {
 
         {reward.redeemed ? (
           <div className="mt-6 flex items-center gap-2 rounded-full bg-gold/15 px-4 py-2 font-bold text-gold">
-            <PartyPopper size={18} /> {t('fulfil.redeemed')} {reward.redeemedAt ? `· ${shortDate(reward.redeemedAt.slice(0, 10))}` : ''}
+            <PartyPopper size={18} /> {t('fulfil.redeemed')} {reward.redeemedAt ? `· ${formatShortDate(reward.redeemedAt.slice(0, 10))}` : ''}
           </div>
         ) : (
           <div className="mt-6 rounded-full bg-line px-4 py-2 text-sm text-muted">

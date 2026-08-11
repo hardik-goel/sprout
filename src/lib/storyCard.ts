@@ -1,11 +1,22 @@
 // Renders the Sunday Family Story to a WhatsApp-sized PNG on a canvas.
 // Canvas (not a screenshot library) keeps it dependency-free and offline —
 // and the output is a plain image the parent can forward anywhere.
-
-import type { FamilyStory } from '@/domain'
+//
+// Text arrives already translated: the caller resolves the story's i18n keys,
+// so this file has no opinion about language.
 
 export const CARD_W = 1080
 export const CARD_H = 1350
+
+export interface StoryCardContent {
+  title: string
+  range: string
+  lines: string[]
+  stats: { label: string; value: string; emoji: string }[]
+  closing: string
+  emoji: string
+  footer: string
+}
 
 function roundRect(
   ctx: CanvasRenderingContext2D,
@@ -41,7 +52,7 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): st
   return lines
 }
 
-export function renderStoryCard(story: FamilyStory): string {
+export function renderStoryCard(content: StoryCardContent): string {
   const canvas = document.createElement('canvas')
   canvas.width = CARD_W
   canvas.height = CARD_H
@@ -49,7 +60,7 @@ export function renderStoryCard(story: FamilyStory): string {
   if (!ctx) return ''
 
   const font = (size: number, weight = '700') =>
-    `${weight} ${size}px Inter, system-ui, -apple-system, "Segoe UI", sans-serif`
+    `${weight} ${size}px Inter, system-ui, -apple-system, "Noto Sans Devanagari", "Segoe UI", sans-serif`
 
   // Background — the deep kid-world green, so the card is unmistakably Sprout.
   const bg = ctx.createLinearGradient(0, 0, CARD_W, CARD_H)
@@ -66,22 +77,22 @@ export function renderStoryCard(story: FamilyStory): string {
 
   ctx.fillStyle = '#FFFFFF'
   ctx.font = font(84, '800')
-  ctx.fillText(story.title, 90, 250)
+  ctx.fillText(content.title, 90, 250)
 
   ctx.fillStyle = 'rgba(255,255,255,0.6)'
   ctx.font = font(38, '600')
-  ctx.fillText(story.subtitle, 90, 310)
+  ctx.fillText(content.range, 90, 310)
 
   // Avatar bubble
   ctx.font = font(120, '400')
   ctx.textAlign = 'right'
-  ctx.fillText(story.emoji, CARD_W - 90, 260)
+  ctx.fillText(content.emoji, CARD_W - 90, 260)
   ctx.textAlign = 'left'
 
   // Story lines
   let y = 430
   ctx.font = font(46, '600')
-  for (const line of story.lines) {
+  for (const line of content.lines) {
     ctx.fillStyle = '#FFFFFF'
     for (const wrapped of wrap(ctx, line, CARD_W - 180)) {
       ctx.fillText(wrapped, 90, y)
@@ -90,14 +101,18 @@ export function renderStoryCard(story: FamilyStory): string {
     y += 18
   }
 
-  // Stat tiles
-  const tileY = Math.max(y + 30, CARD_H - 400)
+  // Stat tiles. The floor keeps them anchored low on a short story; the ceiling
+  // stops a long one (Hindi wraps to more lines than English) from pushing the
+  // tiles down onto the closing line.
+  const TILE_H = 190
+  const CLOSING_TOP = CARD_H - 190
+  const tileY = Math.min(Math.max(y + 30, CARD_H - 400), CLOSING_TOP - TILE_H - 20)
   const gap = 24
-  const tileW = (CARD_W - 180 - gap * (story.stats.length - 1)) / story.stats.length
-  story.stats.forEach((stat, i) => {
+  const tileW = (CARD_W - 180 - gap * (content.stats.length - 1)) / content.stats.length
+  content.stats.forEach((stat, i) => {
     const x = 90 + i * (tileW + gap)
     ctx.fillStyle = 'rgba(255,255,255,0.08)'
-    roundRect(ctx, x, tileY, tileW, 190, 36)
+    roundRect(ctx, x, tileY, tileW, TILE_H, 36)
     ctx.fill()
     ctx.textAlign = 'center'
     ctx.font = font(46, '400')
@@ -115,10 +130,10 @@ export function renderStoryCard(story: FamilyStory): string {
   ctx.textAlign = 'center'
   ctx.fillStyle = '#F0A92E'
   ctx.font = font(48, '800')
-  ctx.fillText(story.closing, CARD_W / 2, CARD_H - 130)
+  ctx.fillText(content.closing, CARD_W / 2, CARD_H - 130)
   ctx.fillStyle = 'rgba(255,255,255,0.4)'
   ctx.font = font(28, '600')
-  ctx.fillText('Points only. No real money. sprout.app', CARD_W / 2, CARD_H - 70)
+  ctx.fillText(content.footer, CARD_W / 2, CARD_H - 70)
 
   return canvas.toDataURL('image/png')
 }

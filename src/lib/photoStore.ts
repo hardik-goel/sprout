@@ -13,6 +13,8 @@ export interface PhotoStore {
   put(id: string, dataUrl: string): Promise<string>
   url(id: string | null): string | null
   remove(id: string): void
+  /** Drop every stored photo. Called when the app data is reset. */
+  clear(): void
 }
 
 /** Longest edge in px after compression — plenty for a proof-of-chore photo. */
@@ -89,6 +91,19 @@ class LocalPhotoStore implements PhotoStore {
     if (!hasStorage()) return
     try {
       localStorage.removeItem(PREFIX + id)
+    } catch {
+      /* ignore */
+    }
+  }
+
+  clear(): void {
+    if (!hasStorage()) return
+    try {
+      // Every reset re-seeds a fresh set of photos under new ids. Without this
+      // the old ones stay behind forever, and a handful of resets is enough to
+      // walk into the localStorage quota.
+      const stale = Object.keys(localStorage).filter((k) => k.startsWith(PREFIX))
+      for (const k of stale) localStorage.removeItem(k)
     } catch {
       /* ignore */
     }

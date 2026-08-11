@@ -13,7 +13,7 @@ import {
 import { appendEvent, approvedTaskCount, balance, jarBalances, streakInfo } from '../ledger'
 import { gardenStage } from '../garden'
 import { habitGrids, habitToNudge, recentActivity, weekStats } from '../insights'
-import { buildFamilyStory, storyToText } from '../story'
+import { buildFamilyStory, storyToText, type Phrase } from '../story'
 import { addDays } from '../dates'
 
 const TODAY = '2026-06-15'
@@ -136,6 +136,7 @@ function buildData(): AppData {
 
   return {
     version: 2,
+    locale: 'en',
     parentName: 'Aanya',
     isPlus: false,
     onboarded: true,
@@ -143,8 +144,8 @@ function buildData(): AppData {
     children: [{ id: 'c1', name: 'Vir', age: 3, avatar: '🦖', goalId: 'rw1', jarSplit: SINGLE }],
     members: [{ id: 'p1', name: 'Aanya', role: 'parent', avatar: '👩' }],
     templates: [
-      { id: 'tpl_teeth', title: 'Brush teeth', emoji: '🪥', category: 'health', basePoints: 10, pack: 'basic', packName: 'Daily Basics', minAge: 2, maxAge: 8 },
-      { id: 'tpl_read', title: 'Read a story', emoji: '📖', category: 'learning', basePoints: 12, pack: 'basic', packName: 'Little Learner', minAge: 2, maxAge: 8 },
+      { id: 'tpl_teeth', title: 'Brush teeth', emoji: '🪥', category: 'health', basePoints: 10, pack: 'basic', packName: 'Daily Basics', packKey: 'pack.basics', minAge: 2, maxAge: 8 },
+      { id: 'tpl_read', title: 'Read a story', emoji: '📖', category: 'learning', basePoints: 12, pack: 'basic', packName: 'Little Learner', packKey: 'pack.littleLearner', minAge: 2, maxAge: 8 },
     ],
     tasks,
     rewards: [
@@ -190,14 +191,36 @@ describe('insights', () => {
 describe('sunday family story', () => {
   const data = buildData()
   const child = data.children[0]
+  const keysOf = (s: ReturnType<typeof buildFamilyStory>) => s.lines.map((l) => l.key)
+  /**
+   * Stand-in translator: renders "key(var=value)" so tests read the structure.
+   * A var that is itself `{ key }` renders as that key, which is how the domain
+   * hands back one of our own task names without naming it in any language.
+   */
+  const fakeT = (key: string, vars?: Phrase['vars']) =>
+    vars
+      ? `${key}(${Object.entries(vars)
+          .map(([k, v]) => `${k}=${typeof v === 'object' ? v.key : v}`)
+          .join(',')})`
+      : key
 
-  it('writes a story a parent would actually forward', () => {
+  it('chooses the sentences the week actually earned', () => {
     const story = buildFamilyStory(data, child, { rich: false, today: TODAY })
-    expect(story.title).toContain('Vir')
-    expect(story.lines.length).toBeGreaterThanOrEqual(2)
-    expect(story.lines.join(' ')).toContain('24')
+    expect(story.title.vars).toMatchObject({ name: 'Vir' })
+    expect(keysOf(story)).toContain('story.tasksAndPoints')
+    expect(story.lines.find((l) => l.key === 'story.tasksAndPoints')!.vars).toMatchObject({
+      tasks: 4,
+      points: 24,
+    })
     expect(story.stats).toHaveLength(3)
     expect(story.rich).toBe(false)
+  })
+
+  it('stays language-free — no English leaks out of the domain', () => {
+    const story = buildFamilyStory(data, child, { rich: true, today: TODAY })
+    const text = JSON.stringify([story.lines, story.closing, story.title])
+    // Only keys, numbers and data the family typed themselves (names, titles).
+    expect(text).not.toMatch(/week for|showed up|in a row|screen-free/)
   })
 
   it('is deterministic — the same week reads the same', () => {
@@ -209,19 +232,23 @@ describe('sunday family story', () => {
   it('adds the goal countdown and habit spotlight on Plus', () => {
     const rich = buildFamilyStory(data, child, { rich: true, today: TODAY })
     expect(rich.stats).toHaveLength(4)
-    expect(rich.lines.join(' ')).toContain('Zoo trip')
-    expect(rich.lines.join(' ')).toContain('Habit of the week')
+    expect(keysOf(rich)).toContain('story.goalAway')
+    expect(keysOf(rich)).toContain('story.habitOfWeek')
+    expect(rich.closing.key).toBe('story.closingRich')
   })
 
   it('stays kind in a week with nothing done', () => {
     const empty = { ...data, tasks: [], ledger: [] }
     const story = buildFamilyStory(empty, child, { rich: false, today: TODAY })
-    expect(story.lines.join(' ')).toContain('fresh start')
+    expect(keysOf(story)).toContain('story.quietWeek')
   })
 
-  it('renders shareable plain text', () => {
-    const text = storyToText(buildFamilyStory(data, child, { rich: true, today: TODAY }))
+  it('renders shareable plain text through the caller’s translator', () => {
+    const story = buildFamilyStory(data, child, { rich: true, today: TODAY })
+    const text = storyToText(story, fakeT, '9 Jun – 15 Jun')
     expect(text).toContain('🌱')
+    expect(text).toContain('9 Jun – 15 Jun')
+    expect(text).toContain('story.tasksAndPoints(tasks=4,points=24)')
     expect(text.split('\n').length).toBeGreaterThan(4)
   })
 })

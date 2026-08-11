@@ -51,21 +51,7 @@ export function lastNDays(n: number, today: string = todayKey()): string[] {
   return Array.from({ length: n }, (_, i) => addDays(today, -(n - 1 - i)))
 }
 
-export function shortDate(key: string): string {
-  const [, m, d] = key.split('-').map(Number)
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  return `${d} ${months[m - 1]}`
-}
-
-export function weekdayShort(key: string): string {
-  return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dateFromKey(key).getDay()]
-}
-
-export function monthLabel(key: string): string {
-  const [y, m] = key.split('-').map(Number)
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
-  ]
-  return `${months[m - 1]} ${y}`
-}
+// Deliberately no date *naming* here. "12 Aug" and "August 2026" are language,
+// not domain, so they live in `src/i18n/format.ts` against the active
+// dictionary. English-only helpers used to sit here and were exactly the kind
+// of thing that quietly gets reached for and leaves a Hindi screen half-English.

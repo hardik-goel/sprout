@@ -90,3 +90,69 @@ verification + docs.
    defend at ₹99 — I'd test whether insights + family circle alone carry it.
 
 — Claude Code
+
+---
+
+## 9. Notes from Claude Code (third build session, 2026-08-11)
+
+Picked this up from an interrupted session — the working tree had a half-finished Hindi
+dictionary, a points-history screen and a language screen, and two failing tests. I finished
+that work, then went bug-hunting across the whole app and drove it by hand in Chrome.
+
+**The one you'd want to know about.** The seed's "Carried over from the sticker chart" entry was
+computed as `90 - everythingElse`, which came out **negative** (−20) and was dated mid-history.
+So the brand-new points-history screen opened with Vir's balance at **−20** and an entry claiming
+a carry-over had *removed* points. Fixed by giving the seed a real opening carry-over dated before
+any history, plus a real reward redemption (Vir bought the sticker pack) so the spend side of the
+ledger isn't a blank. A test now walks the running balance forward and fails if it ever goes
+underwater.
+
+**Nine more, in rough order of how much they'd have hurt.**
+1. **Points could be credited twice.** `markDone` accepted a task in *any* state. Going back to
+   the kid's "I did it!" screen after approval and tapping again reset the task to pending — and
+   the second approval credited the same points a second time. `markDone` now refuses to touch an
+   approved task, and the approve screen shows the approved state instead of a dead button.
+2. **The kid was dumped into the parent app.** Redeeming a reward navigated to `/parent/reward/…`
+   after 1.4s — from the *kid* world. A three-year-old tapping "spend" landed in settings. The kid
+   now stays put; the parent gets a **"Still to give"** queue on their home screen instead (which
+   was also the missing half of the reward loop — the fulfilment screen previously had no entry
+   point at all except that accidental redirect).
+3. **The persona switch sat on top of the primary button.** The floating "Kid view" pill was
+   pinned bottom-right and covered the celebration's "Yay! Keep going" and approve's "Not yet".
+   Moved to the top centre, the one strip every screen leaves empty.
+4. **Photos leaked.** "Start over" left every old photo in localStorage while the fresh seed wrote
+   new ones — a few resets and you'd hit the quota. Rejecting a task orphaned its photo too. Both
+   cleaned up now.
+5. **The add-child route bypassed Plus.** The Children screen hid the button; the route didn't
+   check. Guarded at the screen *and* at the store write.
+6. **Hindi was only half a translation.** Every task name, pack name, gift-note preset and healthy
+   alternative was hardcoded English, so Hindi mode read like a bilingual ransom note. Templates
+   are our content, so they now translate (21 task names, 9 packs); reward titles the parent typed
+   stay as typed. The domain stays language-free — it emits `{ key }` and the UI resolves it.
+7. **Three English-only date formatters** were still exported from the domain, unused. They are the
+   exact thing someone reaches for at 2am and quietly breaks Hindi with. Deleted.
+8. **The story card could overlap itself** — long stories (Hindi wraps more) pushed the stat tiles
+   onto the closing line. Clamped.
+9. **Test isolation.** A failing Hindi test left the whole suite running in Hindi, which is why the
+   points-history failure looked like a different bug than it was.
+
+**What I verified with my own eyes.** Chrome, localhost, both worlds: approve → points → garden
+stage → jar fill → confetti; the points history reading correctly entry by entry; the language
+switch flipping the entire app including task names and dates; the growth album; the still-to-give
+queue. Console is clean (I also opted into the React Router v7 flags so it stops printing two
+upgrade warnings on every load). `npm run build` is green, 122 tests pass.
+
+**What I did NOT verify.** The story card's **PNG export**. Canvas doesn't exist in jsdom and
+exporting in the browser means downloading a file, which I didn't want to do unasked. It is the
+one code path in the app with neither a test nor a click-through. Please tap "Save image" on the
+Sunday story once, in both languages.
+
+**One loose end for you.** `src/features/__tests__/dbg2.test.tsx` is a scratch debug test left over
+from the interrupted session (I used it to isolate the seed bug). It passes and prints noise. I did
+not delete it without asking — say the word.
+
+**My honest top 3 next steps.** Unchanged from last time, and I mean it more now: (1) show it to
+parents, (2) then Supabase, (3) decide the Plus line before building billing. The app is not what
+is uncertain any more; the pricing and the parent reaction are.
+
+— Claude Code

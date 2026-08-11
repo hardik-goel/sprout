@@ -3,7 +3,7 @@ import { ChevronRight, Clock } from 'lucide-react'
 import { useStore } from '@/store'
 import { StreakFlame } from '@/ui/StreakFlame'
 import { jarProgress, STAGE_EMOJI, todayKey } from '@/domain'
-import { t } from '@/i18n'
+import { t, taskTitle } from '@/i18n'
 
 export function MyDay() {
   const nav = useNavigate()
@@ -88,7 +88,7 @@ export function MyDay() {
           >
             <span className="text-4xl">{task.emoji}</span>
             <div className="flex-1">
-              <div className="text-lg font-bold">{task.title}</div>
+              <div className="text-lg font-bold">{taskTitle(task.templateId, task.title)}</div>
               <div className="text-sm text-glow">{t('common.plusPoints', { n: task.points })}</div>
             </div>
             <ChevronRight className="text-white/40" />
@@ -99,7 +99,7 @@ export function MyDay() {
           <div key={task.id} className="flex items-center gap-4 rounded-kid bg-white/5 p-4 opacity-80">
             <span className="text-4xl">{task.emoji}</span>
             <div className="flex-1">
-              <div className="text-lg font-bold">{task.title}</div>
+              <div className="text-lg font-bold">{taskTitle(task.templateId, task.title)}</div>
               <div className="flex items-center gap-1 text-sm text-gold">
                 <Clock size={14} /> {t('kid.waitingGrownup')}
               </div>
@@ -111,7 +111,7 @@ export function MyDay() {
           <div key={task.id} className="flex items-center gap-4 rounded-kid bg-glow/15 p-4">
             <span className="text-4xl">{task.emoji}</span>
             <div className="flex-1">
-              <div className="text-lg font-bold line-through opacity-80">{task.title}</div>
+              <div className="text-lg font-bold line-through opacity-80">{taskTitle(task.templateId, task.title)}</div>
               <div className="text-sm font-bold text-glow">
                 {t('kid.doneWithPoints', { n: task.points })}
               </div>

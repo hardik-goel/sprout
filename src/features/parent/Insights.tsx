@@ -5,8 +5,9 @@ import { useStore } from '@/store'
 import { PageHeader } from '@/ui/PageHeader'
 import { PlusBadge } from '@/ui/PlusBadge'
 import { PlusGate } from '@/ui/PlusGate'
-import { habitGrids, habitToNudge, weekdayShort } from '@/domain'
-import { t } from '@/i18n'
+import { habitGrids, habitToNudge } from '@/domain'
+import { formatWeekdayInitial } from '@/i18n/format'
+import { t, taskTitle } from '@/i18n'
 
 export function Insights() {
   return (
@@ -72,7 +73,7 @@ function InsightsBody() {
               <div key={h.templateId} className="flex items-center gap-3 p-4">
                 <span className="text-xl">{h.emoji}</span>
                 <div className="flex-1">
-                  <div className="text-sm font-bold">{h.title}</div>
+                  <div className="text-sm font-bold">{taskTitle(h.templateId, h.title)}</div>
                   <div className="text-xs text-muted">
                     {t('insights.daysOf', { n: h.doneCount, total: h.days.length })}
                   </div>
@@ -84,7 +85,7 @@ function InsightsBody() {
                         className={`h-6 w-6 rounded-md ${d.done ? 'bg-sprout' : 'bg-line'}`}
                         title={`${d.date}: ${d.done ? t('insights.done') : t('insights.missed')}`}
                       />
-                      <span className="text-[9px] text-muted">{weekdayShort(d.date)[0]}</span>
+                      <span className="text-[9px] text-muted">{formatWeekdayInitial(d.date)}</span>
                     </div>
                   ))}
                 </div>
@@ -101,7 +102,7 @@ function InsightsBody() {
             <span className="font-bold">{t('insights.nudge.label')}</span>{' '}
             {t('insights.nudge.body', {
               emoji: nudge.emoji,
-              title: nudge.title,
+              title: { key: `task.title.${nudge.templateId}` },
               n: nudge.doneCount,
               total: nudge.days.length,
             })}

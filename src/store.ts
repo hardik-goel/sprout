@@ -13,6 +13,7 @@ import type {
   JarKind,
   JarSplit,
   LedgerEvent,
+  Locale,
   Reward,
   RewardTag,
   TaskTemplate,
@@ -44,6 +45,7 @@ import {
 } from '@/domain'
 import { dataStore } from '@/lib/dataStore'
 import { photoStore } from '@/lib/photoStore'
+import { setLocale as applyLocale } from '@/i18n'
 
 /** A child plus everything derived from the ledger — what screens actually render. */
 export interface ChildView extends Child {
@@ -86,6 +88,7 @@ interface Store {
   setActiveChild(id: string): void
   setJarSplit(childId: string, split: JarSplit): void
   setPlus(v: boolean): void
+  setLocale(locale: Locale): void
 
   // tasks
   assignTask(childId: string, tpl: TaskTemplate): void
@@ -157,6 +160,7 @@ function computeView(data: AppData, child: Child): ChildView {
 
 export const useStore = create<Store>((set, get) => {
   const initial = dataStore.load()
+  applyLocale(initial.locale)
 
   /** Append events, persist, and queue them for a future server sync. */
   const commit = (events: LedgerEvent[], mutate?: (d: AppData) => AppData) => {
@@ -200,6 +204,7 @@ export const useStore = create<Store>((set, get) => {
 
     resetAll() {
       const fresh = dataStore.reset()
+      applyLocale(fresh.locale)
       set({ data: fresh, celebration: null, can: entitlements(fresh.isPlus) })
     },
 
@@ -209,6 +214,10 @@ export const useStore = create<Store>((set, get) => {
     },
 
     addChild(name, age, avatar) {
+      // Guard the write, not just the button — the add-child route is reachable
+      // directly. (Phase 2: the server must re-check this too.)
+      const { data, can } = get()
+      if (!can.canAddChild(data.children.length)) return ''
       const id = newId('child')
       const child: Child = { id, name, age, avatar, goalId: null, jarSplit: defaultJarSplit(age) }
       set((s) => ({
@@ -241,6 +250,15 @@ export const useStore = create<Store>((set, get) => {
       get().persist()
     },
 
+    setLocale(locale) {
+      // Apply immediately as well as on the next render, so anything that calls
+      // `t()` outside a component (share text, exported card) is never a beat
+      // behind the state.
+      applyLocale(locale)
+      set((s) => ({ data: { ...s.data, locale } }))
+      get().persist()
+    },
+
     assignTask(childId, tpl) {
       const child = get().data.children.find((c) => c.id === childId)
       if (!child) return
@@ -262,10 +280,21 @@ export const useStore = create<Store>((set, get) => {
     },
 
     async markDone(taskId, photoDataUrl) {
-      let photoId: string | null = null
+      const existing = get().data.tasks.find((t) => t.id === taskId)
+      // An approved task must not fall back to "pending": its points are already
+      // in the ledger, and approving a second time would credit them twice.
+      // Reversing an approval is `undoApproval`, which appends a compensating
+      // event — this path never rewrites history.
+      if (!existing || existing.status === 'approved') return
+
+      let photoId: string | null = existing.photoId
       if (photoDataUrl) {
         photoId = newId('photo')
         await photoStore.put(photoId, photoDataUrl)
+        // Re-doing a task replaces its proof; drop the old bytes.
+        if (existing.photoId && existing.photoId !== photoId) {
+          photoStore.remove(existing.photoId)
+        }
       }
       set((s) => ({
         data: {
@@ -316,11 +345,17 @@ export const useStore = create<Store>((set, get) => {
 
     rejectTask(taskId) {
       // Sent back, not punished: the task returns to today's list to retry.
+      // The rejected photo goes with it — keeping it would leave bytes in
+      // storage that nothing can ever show again.
+      const task = get().data.tasks.find((t) => t.id === taskId)
+      if (task?.photoId) photoStore.remove(task.photoId)
       set((s) => ({
         data: {
           ...s.data,
           tasks: s.data.tasks.map((t) =>
-            t.id === taskId ? { ...t, status: 'todo' as const, completedAt: null } : t,
+            t.id === taskId
+              ? { ...t, status: 'todo' as const, completedAt: null, photoId: null }
+              : t,
           ),
         },
       }))

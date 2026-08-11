@@ -8,7 +8,8 @@
 
 ### Architecture (the part that makes Phase 2 cheap)
 - **`src/domain/`** — pure TypeScript, zero UI imports: ledger, events, garden, age-fit, rewards,
-  insights, story, entitlements, dates. **94 tests, all passing** (`npm test`) — 68 over the domain rules, 26 rendering every screen.
+  insights, story, entitlements, dates. **122 tests, all passing** (`npm test`) — over the domain
+  rules, the dictionaries, and every screen rendered with real seeded data.
 - **Event-sourced points ledger** — no stored balances anywhere. Every points change is an
   append-only `LedgerEvent` (`TASK_APPROVED`, `REWARD_REDEEMED`, `POINTS_GIFTED`, `ADJUSTMENT`)
   with a client-generated UUID. Balances, jars, streaks, garden stage and the gift cap are all
@@ -18,8 +19,11 @@
 - **`src/lib/photoStore.ts`** — separate photo seam. Photos are **compressed client-side**
   (canvas downscale to 720px + JPEG q0.72; a 4MB phone photo lands at ~100KB) and stored under
   their own keys; tasks hold only a `photoId`.
-- **`src/i18n/`** — every user-facing string goes through `t('key')` against `en.ts`. Hindi in
-  Phase 2 is a second dictionary, not a hunt through 30 components.
+- **`src/i18n/`** — every user-facing string goes through `t('key')`. **English and Hindi both
+  ship**, including the task templates and pack names (those are our content, so they translate;
+  reward titles the parent typed are shown exactly as typed). A var may itself be `{ key }`, which
+  is how the pure domain layer names one of our habits without owning a word of any language.
+  Tests fail if a Hindi key, a placeholder or a template name goes missing.
 - **`src/domain/entitlements.ts`** — the single "can this account use X?" answer. Screens ask it,
   never `isPlus` directly, so Phase 4 swaps in real subscription state with no screen changes.
 - Layers: `src/domain/` (rules) → `src/lib/` (seams) → `src/store.ts` (wiring) →
@@ -29,9 +33,11 @@
 Onboarding · Add child (age-fit hint) · Home (goal + streak hero, needs-approval, today, done) ·
 Task library (age-filtered, daily-cap hint, Plus packs locked) · Reward menu (healthy nudge with
 one-tap alternatives, age-fit goal ceiling) · Approve with photo (approve / ask-to-try-again / undo) ·
-Reward fulfilment · **Growth album (A1)** · **Sunday family story (A2, exports a WhatsApp-sized PNG)** ·
+Reward fulfilment (reachable from the reward menu and from the **"Still to give" queue on Home**) ·
+**Points history** (the ledger read back entry by entry, with the running balance) ·
+**Growth album (A1)** · **Sunday family story (A2, exports a WhatsApp-sized PNG)** ·
 Habit insights [Plus] · Weekly digest [Plus] · Family circle [Plus] · Gift points [Plus] ·
-Save·Spend·Give jars [Plus] · Children · More · Upgrade.
+Save·Spend·Give jars [Plus] · Children · **Language (A4)** · More · Upgrade.
 
 ### Kid screens
 My Day · Do task (camera + photo) · **Celebrate** (the signature moment: garden stage-up, jar fill,
@@ -46,7 +52,7 @@ Garden world · Rewards shelf.
 | A1 | Growth Album | ✅ (free — it's the hook) |
 | A2 | Sunday Family Story | ✅ (free simple / Plus rich, PNG + share + copy) |
 | A3 | Voice cheers | ⏭ Phase 3 (needs storage) |
-| A4 | Hindi toggle | ⏭ Phase 2 (i18n layer already in place) |
+| A4 | Hindi toggle | ✅ (free — chrome, generated sentences, dates and task names all translate) |
 
 ### Rules that are real, not decorative
 Gift cap of **50 pts/week per member per child** is enforced by summing ledger events, not by a UI
@@ -74,11 +80,17 @@ Placeholders live in `.env.example`. No fake keys anywhere.
 ## 🔜 Not done / next
 - The weekly digest is an in-app screen; real Sunday delivery needs Phase 3 push.
 - Live camera preview (today: file input with `capture`, which opens the camera on mobile).
-- Per-child gift history view; reward fulfilment history.
-- Hindi dictionary (`src/i18n/hi.ts` is an empty stub that falls back to English key-by-key).
-- No E2E tests in a real browser; screen tests run in jsdom.
-- Nobody has visually reviewed the screens since the ledger rebuild (the Chrome extension here lacks
-  host permission for screenshots) — worth ten minutes of clicking.
+- Voice cheers (A3) — needs storage, Phase 3.
+- No automated E2E in a real browser; the screen tests run in jsdom. The flows *were* driven by
+  hand in Chrome (see the handoff note), but nothing guards them on every commit.
+- **The story card's PNG export is the one path with no test and no click-through** — canvas is not
+  available in jsdom, and exporting it in the browser means downloading a file. Worth one manual
+  check of "Save image" on the Sunday story, in both languages.
+- Reward titles are shown exactly as the parent typed them, so a reward added in English stays
+  English after switching to Hindi. That is deliberate (it is their text, not ours) but it is a
+  judgement call worth revisiting.
+- The daily task cap is advisory: over the cap the library shows a warning but still lets you
+  assign. Deliberate — it is a nudge, not a rule — but say so out loud before a parent finds it.
 
 ---
 

@@ -3,6 +3,12 @@ import { Repeat } from 'lucide-react'
 import { t } from '@/i18n'
 
 // Small floating control to hop between Parent and Kid worlds for the demo.
+//
+// It hangs from the top centre rather than floating above the bottom-right,
+// where it used to sit directly on top of whatever the screen's primary button
+// was — the celebration's "Yay! Keep going" and approve's "Not yet" were both
+// half-covered. Top centre is the one strip every screen leaves empty: titles
+// are left-aligned and header actions are right-aligned.
 export function PersonaSwitch() {
   const nav = useNavigate()
   const { pathname } = useLocation()
@@ -10,13 +16,12 @@ export function PersonaSwitch() {
   return (
     <button
       onClick={() => nav(isKid ? '/parent' : '/kid')}
-      className={`fixed bottom-24 right-4 z-40 flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold shadow-card transition active:scale-95 ${
-        isKid ? 'bg-white text-ink' : 'bg-ink text-white'
+      className={`fixed left-1/2 top-0 z-40 flex -translate-x-1/2 items-center gap-1.5 rounded-b-2xl px-3 py-1.5 text-xs font-bold opacity-90 shadow-card transition active:scale-95 ${
+        isKid ? 'bg-white/90 text-ink' : 'bg-ink/90 text-white'
       }`}
-      style={{ marginRight: 'max(0px, calc((100vw - 430px) / 2))' }}
       aria-label={isKid ? t('persona.toParent') : t('persona.toKid')}
     >
-      <Repeat size={16} />
+      <Repeat size={13} />
       {isKid ? t('persona.parent') : t('persona.kid')}
     </button>
   )

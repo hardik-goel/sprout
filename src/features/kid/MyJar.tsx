@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Lock, PiggyBank, Sparkles } from 'lucide-react'
 import { useStore } from '@/store'
 import { JarVisual } from '@/ui/JarVisual'
@@ -7,7 +6,6 @@ import { jarProgress, rewardsForChild, supportsThreeJars } from '@/domain'
 import { t } from '@/i18n'
 
 export function MyJar() {
-  const nav = useNavigate()
   const data = useStore((s) => s.data)
   const child = useStore((s) => s.activeChild())
   const setGoal = useStore((s) => s.setGoal)
@@ -23,12 +21,16 @@ export function MyJar() {
   // P6: three jars are for kids old enough to weigh a trade-off, on Plus.
   const showThreeJars = supportsThreeJars(child.age) && can.can('threeJars')
 
+  // Redeeming used to bounce the kid into the parent world to "fulfil" the
+  // reward. A three-year-old should never be dropped into the settings app —
+  // the kid stays here, and the parent picks it up from the "still to give"
+  // queue on their own home screen.
   function spend(rewardId: string) {
     const ok = redeemReward(child!.id, rewardId)
     if (ok) {
       const r = data.rewards.find((x) => x.id === rewardId)
       setToast(t('kid.youGot', { emoji: r?.emoji ?? '', title: r?.title ?? '' }))
-      setTimeout(() => nav(`/parent/reward/${rewardId}`), 1400)
+      setTimeout(() => setToast(null), 2600)
     }
   }
 

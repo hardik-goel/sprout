@@ -6,7 +6,12 @@ import './index.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
+    {/* Opt in to the v7 behaviours now: they're what we already assume, and
+        without the flags every page load prints two upgrade warnings that bury
+        the console messages we actually care about. */}
+    <BrowserRouter
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
       <App />
     </BrowserRouter>
   </StrictMode>,

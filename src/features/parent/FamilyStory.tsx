@@ -3,7 +3,7 @@
 // Free tier gets the core story; Plus adds the goal countdown and habit
 // spotlight. Either way it renders to a WhatsApp-sized image, because in India
 // that share to the family group is both the emotional payoff and our cheapest
-// distribution.
+// distribution. The domain hands us keys; this screen speaks the language.
 
 import { useMemo, useState } from 'react'
 import { Copy, Download, Share2, Sparkles } from 'lucide-react'
@@ -13,6 +13,7 @@ import { PageHeader } from '@/ui/PageHeader'
 import { PlusBadge } from '@/ui/PlusBadge'
 import { buildFamilyStory, storyToText } from '@/domain'
 import { downloadDataUrl, renderStoryCard } from '@/lib/storyCard'
+import { formatRange } from '@/i18n/format'
 import { t } from '@/i18n'
 
 export function FamilyStory() {
@@ -22,15 +23,18 @@ export function FamilyStory() {
   const [toast, setToast] = useState<string | null>(null)
 
   const story = useMemo(
-    () =>
-      activeChild
-        ? buildFamilyStory(data, activeChild, { rich: can.can('richStory') })
-        : null,
+    () => (activeChild ? buildFamilyStory(data, activeChild, { rich: can.can('richStory') }) : null),
     [data, activeChild, can],
   )
 
   if (!activeChild || !story)
     return <p className="px-5 pt-20 text-center text-muted">{t('common.noChildSelected')}</p>
+
+  const title = t(story.title.key, story.title.vars)
+  const range = formatRange(story.from, story.to)
+  const lines = story.lines.map((l) => t(l.key, l.vars))
+  const closing = t(story.closing.key, story.closing.vars)
+  const stats = story.stats.map((s) => ({ ...s, label: t(s.labelKey) }))
 
   function flash(key: string) {
     setToast(t(key))
@@ -38,28 +42,41 @@ export function FamilyStory() {
   }
 
   function saveImage() {
-    const dataUrl = renderStoryCard(story!)
+    const dataUrl = renderStoryCard({
+      title,
+      range,
+      lines,
+      stats,
+      closing,
+      emoji: story!.emoji,
+      footer: t('gift.pointsOnlyNote'),
+    })
     if (!dataUrl) return flash('story.imageFailed')
     downloadDataUrl(dataUrl, `sprout-${activeChild!.name.toLowerCase()}-week.png`)
     flash('story.saved')
   }
 
-  async function share() {
-    const text = storyToText(story!)
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: story!.title, text })
-        return
-      } catch {
-        // user dismissed the sheet — fall through to copy
-      }
-    }
+  async function copyText() {
+    const text = storyToText(story!, t, range)
     try {
       await navigator.clipboard.writeText(text)
       flash('story.copied')
     } catch {
       flash('story.copyFailed')
     }
+  }
+
+  async function share() {
+    const text = storyToText(story!, t, range)
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text })
+        return
+      } catch {
+        // user dismissed the sheet — fall through to copy
+      }
+    }
+    await copyText()
   }
 
   return (
@@ -79,21 +96,21 @@ export function FamilyStory() {
           <div className="flex items-start justify-between">
             <div>
               <div className="text-xs font-extrabold tracking-widest text-glow">🌱 SPROUT</div>
-              <h2 className="mt-2 text-2xl font-extrabold">{story.title}</h2>
-              <p className="text-sm text-white/60">{story.subtitle}</p>
+              <h2 className="mt-2 text-2xl font-extrabold">{title}</h2>
+              <p className="text-sm text-white/60">{range}</p>
             </div>
             <span className="text-5xl">{story.emoji}</span>
           </div>
 
           <div className="mt-5 space-y-2 text-[15px] leading-snug">
-            {story.lines.map((line, i) => (
+            {lines.map((line, i) => (
               <p key={i}>{line}</p>
             ))}
           </div>
 
           <div className="mt-5 grid grid-cols-3 gap-2">
-            {story.stats.slice(0, 3).map((s) => (
-              <div key={s.label} className="rounded-2xl bg-white/10 p-3 text-center">
+            {stats.slice(0, 3).map((s) => (
+              <div key={s.labelKey} className="rounded-2xl bg-white/10 p-3 text-center">
                 <div className="text-lg">{s.emoji}</div>
                 <div className="text-xl font-extrabold text-glow">{s.value}</div>
                 <div className="text-[10px] text-white/60">{s.label}</div>
@@ -101,7 +118,7 @@ export function FamilyStory() {
             ))}
           </div>
 
-          <p className="mt-5 text-center font-extrabold text-gold">{story.closing}</p>
+          <p className="mt-5 text-center font-extrabold text-gold">{closing}</p>
         </div>
 
         <div className="mt-5 space-y-2">
@@ -111,13 +128,7 @@ export function FamilyStory() {
           <button className="btn-ghost w-full" onClick={saveImage}>
             <Download size={18} /> {t('story.saveImage')}
           </button>
-          <button
-            className="btn-ghost w-full"
-            onClick={async () => {
-              await navigator.clipboard?.writeText(storyToText(story))
-              flash('story.copied')
-            }}
-          >
+          <button className="btn-ghost w-full" onClick={copyText}>
             <Copy size={18} /> {t('story.copyText')}
           </button>
         </div>

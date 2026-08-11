@@ -4,7 +4,7 @@ import { PartyPopper } from 'lucide-react'
 import { useStore } from '@/store'
 import { PageHeader } from '@/ui/PageHeader'
 import { PhotoCapture } from '@/ui/PhotoCapture'
-import { t } from '@/i18n'
+import { t, taskTitle } from '@/i18n'
 
 export function DoTask() {
   const { taskId } = useParams()
@@ -38,7 +38,7 @@ export function DoTask() {
       <PageHeader title="" back="/kid" kid />
       <div className="flex flex-col items-center text-center">
         <div className="text-7xl">{task.emoji}</div>
-        <h1 className="mt-3 text-2xl font-extrabold">{task.title}</h1>
+        <h1 className="mt-3 text-2xl font-extrabold">{taskTitle(task.templateId, task.title)}</h1>
         <div className="mt-1 chip bg-glow/15 text-glow">
           {t('common.plusPoints', { n: task.points })}
         </div>

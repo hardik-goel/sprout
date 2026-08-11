@@ -27,3 +27,6 @@ dist-ssr
 
 # PWA generated
 dev-dist
+
+# TypeScript incremental build cache — machine-local, churns on every build
+*.tsbuildinfo

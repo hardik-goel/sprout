@@ -8,46 +8,52 @@ import { ageFitTaskPoints, defaultJarSplit } from '@/domain/ageFit'
 import { splitPoints } from '@/domain/ledger'
 import { photoStore } from './photoStore'
 
-export const SEED_VERSION = 2
+// Bumping this re-seeds on next load (see dataStore.load). The demo data is not
+// worth migrating, and a stale seed is how a "fixed" bug reappears in a demo.
+export const SEED_VERSION = 4
 
 let counter = 0
 const uid = (p: string) => `${p}_${(counter++).toString(36).padStart(3, '0')}`
 
+// `title`/`packName` here are the English fallback; screens render
+// `t('task.title.<id>')` and `t(packKey)` so Hindi mode is not half-English.
 export const TASK_TEMPLATES: TaskTemplate[] = [
   // --- Basic packs (free) ---
-  { id: 'tpl_teeth', title: 'Brush teeth', emoji: '🪥', category: 'health', basePoints: 10, pack: 'basic', packName: 'Daily Basics', minAge: 2, maxAge: 8 },
-  { id: 'tpl_bed', title: 'Make the bed', emoji: '🛏️', category: 'chore', basePoints: 10, pack: 'basic', packName: 'Daily Basics', minAge: 3, maxAge: 8 },
-  { id: 'tpl_toys', title: 'Tidy up toys', emoji: '🧸', category: 'chore', basePoints: 10, pack: 'basic', packName: 'Daily Basics', minAge: 2, maxAge: 8 },
-  { id: 'tpl_plate', title: 'Clear my plate', emoji: '🍽️', category: 'chore', basePoints: 8, pack: 'basic', packName: 'Daily Basics', minAge: 3, maxAge: 8 },
-  { id: 'tpl_water', title: 'Water the plant', emoji: '🌿', category: 'kindness', basePoints: 8, pack: 'basic', packName: 'Daily Basics', minAge: 2, maxAge: 8 },
-  { id: 'tpl_veg', title: 'Eat my veggies', emoji: '🥦', category: 'health', basePoints: 12, pack: 'basic', packName: 'Daily Basics', minAge: 2, maxAge: 8 },
-  { id: 'tpl_help', title: 'Help set the table', emoji: '🍴', category: 'kindness', basePoints: 10, pack: 'basic', packName: 'Daily Basics', minAge: 3, maxAge: 8 },
-  { id: 'tpl_read', title: 'Read a story', emoji: '📖', category: 'learning', basePoints: 12, pack: 'basic', packName: 'Little Learner', minAge: 2, maxAge: 8 },
-  { id: 'tpl_shoes', title: 'Put shoes away', emoji: '👟', category: 'chore', basePoints: 8, pack: 'basic', packName: 'Toddler Basics', minAge: 2, maxAge: 5 },
-  { id: 'tpl_wash', title: 'Wash my hands', emoji: '🧼', category: 'health', basePoints: 6, pack: 'basic', packName: 'Toddler Basics', minAge: 2, maxAge: 5 },
-  { id: 'tpl_bag', title: 'Pack my school bag', emoji: '🎒', category: 'chore', basePoints: 12, pack: 'basic', packName: 'Big Kid Routines', minAge: 5, maxAge: 8 },
-  { id: 'tpl_home', title: 'Finish homework', emoji: '✏️', category: 'learning', basePoints: 15, pack: 'basic', packName: 'Big Kid Routines', minAge: 5, maxAge: 8 },
-  { id: 'tpl_walk', title: 'Play outside 30 min', emoji: '⚽', category: 'health', basePoints: 12, pack: 'basic', packName: 'Healthy Habits', minAge: 3, maxAge: 8 },
+  { id: 'tpl_teeth', title: 'Brush teeth', emoji: '🪥', category: 'health', basePoints: 10, pack: 'basic', packName: 'Daily Basics', packKey: 'pack.basics', minAge: 2, maxAge: 8 },
+  { id: 'tpl_bed', title: 'Make the bed', emoji: '🛏️', category: 'chore', basePoints: 10, pack: 'basic', packName: 'Daily Basics', packKey: 'pack.basics', minAge: 3, maxAge: 8 },
+  { id: 'tpl_toys', title: 'Tidy up toys', emoji: '🧸', category: 'chore', basePoints: 10, pack: 'basic', packName: 'Daily Basics', packKey: 'pack.basics', minAge: 2, maxAge: 8 },
+  { id: 'tpl_plate', title: 'Clear my plate', emoji: '🍽️', category: 'chore', basePoints: 8, pack: 'basic', packName: 'Daily Basics', packKey: 'pack.basics', minAge: 3, maxAge: 8 },
+  { id: 'tpl_water', title: 'Water the plant', emoji: '🌿', category: 'kindness', basePoints: 8, pack: 'basic', packName: 'Daily Basics', packKey: 'pack.basics', minAge: 2, maxAge: 8 },
+  { id: 'tpl_veg', title: 'Eat my veggies', emoji: '🥦', category: 'health', basePoints: 12, pack: 'basic', packName: 'Daily Basics', packKey: 'pack.basics', minAge: 2, maxAge: 8 },
+  { id: 'tpl_help', title: 'Help set the table', emoji: '🍴', category: 'kindness', basePoints: 10, pack: 'basic', packName: 'Daily Basics', packKey: 'pack.basics', minAge: 3, maxAge: 8 },
+  { id: 'tpl_read', title: 'Read a story', emoji: '📖', category: 'learning', basePoints: 12, pack: 'basic', packName: 'Little Learner', packKey: 'pack.littleLearner', minAge: 2, maxAge: 8 },
+  { id: 'tpl_shoes', title: 'Put shoes away', emoji: '👟', category: 'chore', basePoints: 8, pack: 'basic', packName: 'Toddler Basics', packKey: 'pack.toddler', minAge: 2, maxAge: 5 },
+  { id: 'tpl_wash', title: 'Wash my hands', emoji: '🧼', category: 'health', basePoints: 6, pack: 'basic', packName: 'Toddler Basics', packKey: 'pack.toddler', minAge: 2, maxAge: 5 },
+  { id: 'tpl_bag', title: 'Pack my school bag', emoji: '🎒', category: 'chore', basePoints: 12, pack: 'basic', packName: 'Big Kid Routines', packKey: 'pack.bigKid', minAge: 5, maxAge: 8 },
+  { id: 'tpl_home', title: 'Finish homework', emoji: '✏️', category: 'learning', basePoints: 15, pack: 'basic', packName: 'Big Kid Routines', packKey: 'pack.bigKid', minAge: 5, maxAge: 8 },
+  { id: 'tpl_walk', title: 'Play outside 30 min', emoji: '⚽', category: 'health', basePoints: 12, pack: 'basic', packName: 'Healthy Habits', packKey: 'pack.healthy', minAge: 3, maxAge: 8 },
 
   // --- Plus packs (shown but locked when !isPlus) ---
-  { id: 'tpl_diya', title: 'Help light the diyas', emoji: '🪔', category: 'festival', basePoints: 15, pack: 'plus', packName: 'Festival Pack (India) ✨', minAge: 3, maxAge: 8 },
-  { id: 'tpl_rangoli', title: 'Make a rangoli', emoji: '🎨', category: 'festival', basePoints: 15, pack: 'plus', packName: 'Festival Pack (India) ✨', minAge: 3, maxAge: 8 },
-  { id: 'tpl_rakhi', title: 'Tie a rakhi', emoji: '🎀', category: 'festival', basePoints: 12, pack: 'plus', packName: 'Festival Pack (India) ✨', minAge: 2, maxAge: 8 },
-  { id: 'tpl_namaste', title: 'Greet elders (namaste)', emoji: '🙏', category: 'kindness', basePoints: 10, pack: 'plus', packName: 'Sanskaar Pack ✨', minAge: 2, maxAge: 8 },
-  { id: 'tpl_dadi', title: 'Call Dadi/Nani', emoji: '📞', category: 'kindness', basePoints: 12, pack: 'plus', packName: 'Sanskaar Pack ✨', minAge: 3, maxAge: 8 },
-  { id: 'tpl_joint', title: 'Help serve at family dinner', emoji: '🍛', category: 'kindness', basePoints: 12, pack: 'plus', packName: 'Sanskaar Pack ✨', minAge: 4, maxAge: 8 },
-  { id: 'tpl_hindi', title: 'Practice Hindi letters', emoji: '🔤', category: 'learning', basePoints: 15, pack: 'plus', packName: 'Bharat Learner ✨', minAge: 4, maxAge: 8 },
-  { id: 'tpl_yoga', title: 'Morning yoga/stretch', emoji: '🧘', category: 'health', basePoints: 12, pack: 'plus', packName: 'Healthy Habits ✨', minAge: 3, maxAge: 8 },
+  { id: 'tpl_diya', title: 'Help light the diyas', emoji: '🪔', category: 'festival', basePoints: 15, pack: 'plus', packName: 'Festival Pack (India) ✨', packKey: 'pack.festival', minAge: 3, maxAge: 8 },
+  { id: 'tpl_rangoli', title: 'Make a rangoli', emoji: '🎨', category: 'festival', basePoints: 15, pack: 'plus', packName: 'Festival Pack (India) ✨', packKey: 'pack.festival', minAge: 3, maxAge: 8 },
+  { id: 'tpl_rakhi', title: 'Tie a rakhi', emoji: '🎀', category: 'festival', basePoints: 12, pack: 'plus', packName: 'Festival Pack (India) ✨', packKey: 'pack.festival', minAge: 2, maxAge: 8 },
+  { id: 'tpl_namaste', title: 'Greet elders (namaste)', emoji: '🙏', category: 'kindness', basePoints: 10, pack: 'plus', packName: 'Sanskaar Pack ✨', packKey: 'pack.sanskaar', minAge: 2, maxAge: 8 },
+  { id: 'tpl_dadi', title: 'Call Dadi/Nani', emoji: '📞', category: 'kindness', basePoints: 12, pack: 'plus', packName: 'Sanskaar Pack ✨', packKey: 'pack.sanskaar', minAge: 3, maxAge: 8 },
+  { id: 'tpl_joint', title: 'Help serve at family dinner', emoji: '🍛', category: 'kindness', basePoints: 12, pack: 'plus', packName: 'Sanskaar Pack ✨', packKey: 'pack.sanskaar', minAge: 4, maxAge: 8 },
+  { id: 'tpl_hindi', title: 'Practice Hindi letters', emoji: '🔤', category: 'learning', basePoints: 15, pack: 'plus', packName: 'Bharat Learner ✨', packKey: 'pack.bharat', minAge: 4, maxAge: 8 },
+  { id: 'tpl_yoga', title: 'Morning yoga/stretch', emoji: '🧘', category: 'health', basePoints: 12, pack: 'plus', packName: 'Healthy Habits ✨', packKey: 'pack.healthyPlus', minAge: 3, maxAge: 8 },
 ]
 
 const VIR = 'child_vir'
 const IRA = 'child_ira'
 const PARENT = 'mem_aanya'
 
-function rewards(): Reward[] {
+function rewards(stickerRedeemedAt: string): Reward[] {
   return [
     { id: 'rw_zoo', childId: VIR, title: 'Zoo trip', emoji: '🦁', cost: 150, tags: ['outing', 'experience'], redeemed: false, redeemedAt: null, fulfilled: false },
-    { id: 'rw_sticker', childId: VIR, title: 'Sticker pack', emoji: '🌟', cost: 30, tags: ['toy'], redeemed: false, redeemedAt: null, fulfilled: false },
+    // Redeemed but not yet handed over — the demo opens with one thing owed,
+    // which is exactly the state the "still to give" queue exists for.
+    { id: 'rw_sticker', childId: VIR, title: 'Sticker pack', emoji: '🌟', cost: 30, tags: ['toy'], redeemed: true, redeemedAt: stickerRedeemedAt, fulfilled: false },
     { id: 'rw_story', childId: VIR, title: 'Extra bedtime story', emoji: '📚', cost: 25, tags: ['experience'], redeemed: false, redeemedAt: null, fulfilled: false },
     { id: 'rw_cycle', childId: IRA, title: 'Cycle ride with Papa', emoji: '🚲', cost: 60, tags: ['outing'], redeemed: false, redeemedAt: null, fulfilled: false },
     { id: 'rw_bat', childId: IRA, title: 'Cricket bat', emoji: '🏏', cost: 250, tags: ['toy'], redeemed: false, redeemedAt: null, fulfilled: false },
@@ -82,7 +88,8 @@ function buildHistory(plan: HistoryPlan, today: string) {
   const split = defaultJarSplit(plan.age)
   let photoIdx = 0
 
-  for (const offset of [...plan.activeOffsets].sort((a, b) => b - a)) {
+  const days = [...plan.activeOffsets].sort((a, b) => b - a)
+  days.forEach((offset, dayIndex) => {
     const date = addDays(today, -offset)
     plan.templateIds.forEach((tplId, i) => {
       // First habit lands every active day; the others vary, so the 7-day
@@ -91,9 +98,10 @@ function buildHistory(plan: HistoryPlan, today: string) {
       const tpl = TASK_TEMPLATES.find((t) => t.id === tplId)!
       const points = ageFitTaskPoints(tpl.basePoints, plan.age)
       const taskId = uid('task')
-      // Every third approval keeps its photo — enough to fill the album
-      // without bloating localStorage on first run.
-      const withPhoto = photoIdx % 3 === 0
+      // One photo per day, rotating through the day's habits. Keeping every
+      // photo would bloat localStorage; keeping every *third* one landed on the
+      // same habit each day and made the album six pictures of a toothbrush.
+      const withPhoto = i === dayIndex % plan.templateIds.length
       const photoId = withPhoto ? uid('photo') : null
       if (photoId) {
         photoStore.put(photoId, seedPhoto(tpl.emoji, TINTS[photoIdx % TINTS.length]))
@@ -133,7 +141,7 @@ function buildHistory(plan: HistoryPlan, today: string) {
         })
       }
     })
-  }
+  })
   return { tasks, events }
 }
 
@@ -213,26 +221,50 @@ export function buildSeed(): AppData {
     jar: 'save',
   })
 
-  // Top up Vir to exactly 90 so the demo lands on the 90/150 zoo jar. Modelled
-  // as a real ADJUSTMENT ("we moved over from the sticker chart") rather than a
-  // fudged balance — the ledger stays the only source of truth.
-  const virBalance = ledger
+  // Vir already spent some points on the sticker pack. Seeding a real
+  // redemption (rather than a history of nothing but earning) is what makes the
+  // jar, the points history and the "still to give" queue look like a real
+  // family instead of a brochure.
+  const REDEEM_DAY = addDays(today, -2)
+  const stickerCost = 30
+  ledger.push({
+    id: uid('evt'),
+    type: 'REWARD_REDEEMED',
+    childId: VIR,
+    actorId: PARENT,
+    actorRole: 'parent',
+    delta: -stickerCost,
+    at: `${REDEEM_DAY}T18:00:00.000Z`,
+    date: REDEEM_DAY,
+    reason: 'Sticker pack',
+    refId: 'rw_sticker',
+    weekKey: weekKey(REDEEM_DAY),
+    jar: 'save',
+  })
+
+  // Open the ledger with the balance Vir brought over from the paper sticker
+  // chart, dated before any of the seeded history so the running balance never
+  // starts underwater. The amount is derived so the demo still lands on exactly
+  // 90/150 for the zoo jar — the ledger stays the only source of truth, and a
+  // seed test asserts the sum.
+  const OPENING_DAY = addDays(today, -8)
+  const earnedSoFar = ledger
     .filter((e) => e.childId === VIR)
     .reduce((s, e) => s + e.delta, 0)
-  const topUp = 90 - virBalance
-  if (topUp !== 0) {
-    ledger.push({
+  const carriedOver = 90 - earnedSoFar
+  if (carriedOver > 0) {
+    ledger.unshift({
       id: uid('evt'),
       type: 'ADJUSTMENT',
       childId: VIR,
       actorId: PARENT,
       actorRole: 'parent',
-      delta: topUp,
-      at: `${addDays(today, -6)}T09:00:00.000Z`,
-      date: addDays(today, -6),
+      delta: carriedOver,
+      at: `${OPENING_DAY}T09:00:00.000Z`,
+      date: OPENING_DAY,
       reason: 'Carried over from the sticker chart',
       refId: null,
-      weekKey: weekKey(addDays(today, -6)),
+      weekKey: weekKey(OPENING_DAY),
       jar: 'save',
     })
   }
@@ -244,6 +276,7 @@ export function buildSeed(): AppData {
 
   return {
     version: SEED_VERSION,
+    locale: 'en',
     parentName: 'Aanya',
     isPlus: false,
     onboarded: true, // the demo lands on a live, populated home
@@ -256,7 +289,7 @@ export function buildSeed(): AppData {
     ],
     templates: TASK_TEMPLATES,
     tasks,
-    rewards: rewards(),
+    rewards: rewards(`${REDEEM_DAY}T18:00:00.000Z`),
     ledger,
   }
 }

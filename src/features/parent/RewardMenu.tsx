@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Heart, Plus, Target, X } from 'lucide-react'
 import { useStore } from '@/store'
 import { PageHeader } from '@/ui/PageHeader'
@@ -59,8 +60,10 @@ export function RewardMenu() {
     setTags([])
   }
 
+  // The suggestion is our copy, so it is translated; once accepted it becomes
+  // the parent's own reward title and is stored exactly as they see it.
   function useAlternative(alt: (typeof HEALTHY_ALTERNATIVES)[number]) {
-    setTitle(alt.title)
+    setTitle(t(alt.titleKey))
     setEmoji(alt.emoji)
     setTags(alt.tags)
   }
@@ -99,7 +102,14 @@ export function RewardMenu() {
                   )}
                 </div>
               </div>
-              {activeChild &&
+              {/* A redeemed reward is no longer a goal to pick — it is a thing
+                  owed, so the row leads to the fulfilment screen instead. */}
+              {r.redeemed ? (
+                <Link to={`/parent/reward/${r.id}`} className="btn-ghost px-3 py-2 text-sm">
+                  {r.fulfilled ? t('fulfil.given') : t('reward.openFulfil')}
+                </Link>
+              ) : (
+                activeChild &&
                 (isGoal ? (
                   <span className="chip bg-sprout/15 text-sprout">
                     <Target size={14} /> {t('reward.goalChip')}
@@ -111,7 +121,8 @@ export function RewardMenu() {
                   >
                     {t('reward.setGoal')}
                   </button>
-                ))}
+                ))
+              )}
             </div>
           )
         })}
@@ -204,11 +215,11 @@ export function RewardMenu() {
                 <div className="mt-2 flex flex-wrap gap-2">
                   {HEALTHY_ALTERNATIVES.slice(0, 3).map((alt) => (
                     <button
-                      key={alt.title}
+                      key={alt.titleKey}
                       onClick={() => useAlternative(alt)}
                       className="chip border border-berry/30 bg-white text-berry"
                     >
-                      {alt.emoji} {alt.title}
+                      {alt.emoji} {t(alt.titleKey)}
                     </button>
                   ))}
                 </div>

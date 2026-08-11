@@ -26,7 +26,9 @@ export function GiftPoints() {
   )
 }
 
-const NOTES = ['Shabaash beta! 🌟', 'So proud of you! 💛', 'Keep going! 🎉']
+// Note presets are our copy; the one that is picked is stored on the event as
+// the words the relative actually sent.
+const NOTE_KEYS = ['gift.preset.1', 'gift.preset.2', 'gift.preset.3']
 
 function GiftBody() {
   const data = useStore((s) => s.data)
@@ -37,7 +39,7 @@ function GiftBody() {
   const [memberId, setMemberId] = useState(relatives[0]?.id ?? '')
   const [childId, setChildId] = useState(data.activeChildId ?? data.children[0]?.id ?? '')
   const [amount, setAmount] = useState(10)
-  const [note, setNote] = useState(NOTES[0])
+  const [noteKey, setNoteKey] = useState(NOTE_KEYS[0])
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
   // Derived from the ledger on every render — the cap can't drift out of sync.
@@ -45,7 +47,7 @@ function GiftBody() {
   const sendable = Math.min(amount, remaining)
 
   function send() {
-    const res = giftPoints(memberId, childId, sendable, note)
+    const res = giftPoints(memberId, childId, sendable, t(noteKey))
     const m = data.members.find((x) => x.id === memberId)
     const c = data.children.find((x) => x.id === childId)
     if (res.ok) {
@@ -112,15 +114,15 @@ function GiftBody() {
 
       <Field label={t('gift.note')}>
         <div className="flex flex-wrap gap-2">
-          {NOTES.map((n) => (
+          {NOTE_KEYS.map((k) => (
             <button
-              key={n}
-              onClick={() => setNote(n)}
+              key={k}
+              onClick={() => setNoteKey(k)}
               className={`chip border ${
-                note === n ? 'border-sprout bg-sprout/10 text-sprout' : 'border-line bg-white'
+                noteKey === k ? 'border-sprout bg-sprout/10 text-sprout' : 'border-line bg-white'
               }`}
             >
-              {n}
+              {t(k)}
             </button>
           ))}
         </div>

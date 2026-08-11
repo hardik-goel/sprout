@@ -70,6 +70,41 @@ describe('seed family', () => {
     expect(ira.jarSplit.save + ira.jarSplit.spend + ira.jarSplit.give).toBe(100)
   })
 
+  it('never lets the running balance go underwater', () => {
+    // The opening "carried over from the sticker chart" entry must be positive
+    // and dated before everything else. It used to be computed as a *negative*
+    // top-up dated mid-history, which made the points history open at -20 —
+    // nonsense to a parent reading the ledger from the start.
+    const virs = data.ledger
+      .filter((e) => e.childId === 'child_vir')
+      .slice()
+      .sort((a, b) => a.at.localeCompare(b.at))
+
+    let running = 0
+    for (const e of virs) {
+      running += e.delta
+      expect(running).toBeGreaterThanOrEqual(0)
+    }
+    expect(running).toBe(90)
+
+    const opening = virs[0]
+    expect(opening.type).toBe('ADJUSTMENT')
+    expect(opening.delta).toBeGreaterThan(0)
+  })
+
+  it('has one reward already redeemed but not yet handed over', () => {
+    const sticker = data.rewards.find((r) => r.id === 'rw_sticker')!
+    expect(sticker.redeemed).toBe(true)
+    expect(sticker.fulfilled).toBe(false)
+    expect(sticker.redeemedAt).toBeTruthy()
+
+    // And it is backed by a real ledger event, not just a flag on the reward.
+    const spend = data.ledger.filter((e) => e.type === 'REWARD_REDEEMED')
+    expect(spend).toHaveLength(1)
+    expect(spend[0].delta).toBe(-sticker.cost)
+    expect(spend[0].refId).toBe('rw_sticker')
+  })
+
   it('generates unique ids across tasks and events', () => {
     const ids = [...data.tasks.map((t) => t.id), ...data.ledger.map((e) => e.id)]
     expect(new Set(ids).size).toBe(ids.length)

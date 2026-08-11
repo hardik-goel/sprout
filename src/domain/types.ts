@@ -8,6 +8,9 @@
 
 export type ID = string
 
+/** UI language. Lives in the domain because it is persisted with the account. */
+export type Locale = 'en' | 'hi'
+
 export type Avatar = string // emoji
 
 // --- Ledger ----------------------------------------------------------------
@@ -72,6 +75,14 @@ export interface FamilyMember {
 
 export type TaskCategory = 'chore' | 'learning' | 'health' | 'kindness' | 'festival'
 
+/**
+ * Task templates are *our* content, not the family's, so they are translated:
+ * the title is looked up as `task.title.<id>` and the pack name as `packKey`.
+ * `title`/`packName` stay on the record as the English fallback and as what
+ * gets written into a ledger event's `reason` at the time it happened.
+ * (Reward titles are the opposite case — the parent typed those, so they are
+ * shown exactly as entered, in any language.)
+ */
 export interface TaskTemplate {
   id: ID
   title: string
@@ -80,6 +91,7 @@ export interface TaskTemplate {
   basePoints: number
   pack: 'basic' | 'plus' // plus packs are shown but locked when !isPlus
   packName: string
+  packKey: string // i18n key for packName
   minAge: number
   maxAge: number
 }
@@ -118,6 +130,7 @@ export interface Reward {
 
 export interface AppData {
   version: number
+  locale: Locale
   parentName: string
   isPlus: boolean
   onboarded: boolean

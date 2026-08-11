@@ -3,8 +3,10 @@ import {
   ChevronRight,
   Gift,
   Images,
+  Languages,
   Mail,
   PiggyBank,
+  ReceiptText,
   RotateCcw,
   Share2,
   Sparkles,
@@ -23,7 +25,9 @@ const LINKS: { to: string; icon: typeof Gift; key: string; feature?: Feature }[]
   { to: '/parent/circle', icon: Users, key: 'more.circle', feature: 'familyCircle' },
   { to: '/parent/gift', icon: Gift, key: 'more.gift', feature: 'giftPoints' },
   { to: '/parent/jars', icon: PiggyBank, key: 'more.jars', feature: 'threeJars' },
+  { to: '/parent/history', icon: ReceiptText, key: 'more.history' },
   { to: '/parent/children', icon: Users, key: 'more.children' },
+  { to: '/parent/language', icon: Languages, key: 'more.language' },
   { to: '/parent/upgrade', icon: Sparkles, key: 'more.upgrade' },
 ]
 
