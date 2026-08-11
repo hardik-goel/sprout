@@ -23,6 +23,7 @@ import { JarSettings } from './features/parent/JarSettings'
 import { More } from './features/parent/More'
 import { PointsHistory } from './features/parent/PointsHistory'
 import { Language } from './features/parent/Language'
+import { VoiceCheers } from './features/parent/VoiceCheers'
 
 // Kid screens
 import { MyDay } from './features/kid/MyDay'
@@ -65,6 +66,7 @@ export default function App() {
         <Route path="/parent/children" element={<Children />} />
         <Route path="/parent/history" element={<PointsHistory />} />
         <Route path="/parent/language" element={<Language />} />
+        <Route path="/parent/cheers" element={<VoiceCheers />} />
         <Route path="/parent/more" element={<More />} />
         <Route path="/parent/upgrade" element={<Upgrade />} />
       </Route>

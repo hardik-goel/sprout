@@ -126,6 +126,23 @@ export interface Reward {
   fulfilled: boolean
 }
 
+/**
+ * A3 — a recorded cheer. Three seconds of Dadi saying "shabaash beta" is worth
+ * more to a four-year-old than any animation we could draw, and it is the one
+ * thing in the app a competitor cannot copy: it is her actual voice.
+ *
+ * Like a photo, the bytes live behind the audioStore seam; this record keeps
+ * only the id.
+ */
+export interface VoiceCheer {
+  id: ID
+  audioId: string // key into audioStore
+  memberId: ID // who recorded it
+  childId: ID | null // null = for every child
+  durationMs: number
+  createdAt: string // ISO
+}
+
 // --- Root ------------------------------------------------------------------
 
 export interface AppData {
@@ -140,6 +157,7 @@ export interface AppData {
   templates: TaskTemplate[]
   tasks: AssignedTask[]
   rewards: Reward[]
+  cheers: VoiceCheer[]
   /** The append-only source of truth for all points. */
   ledger: LedgerEvent[]
 }

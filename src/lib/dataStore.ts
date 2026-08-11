@@ -13,6 +13,7 @@
 import type { AppData, LedgerEvent } from '@/domain/types'
 import { buildSeed, SEED_VERSION } from './seed'
 import { photoStore } from './photoStore'
+import { audioStore } from './audioStore'
 
 const STORAGE_KEY = 'sprout.appData.v2'
 const OUTBOX_KEY = 'sprout.outbox.v1'
@@ -55,9 +56,10 @@ class LocalDataStore implements DataStore {
   }
 
   reset(): AppData {
-    // Drop the previous run's photos first: the seed is about to write a fresh
+    // Drop the previous run's media first: the seed is about to write a fresh
     // set under new ids, and nothing would ever reference the old ones again.
     photoStore.clear()
+    audioStore.clear()
     const seed = buildSeed()
     this.save(seed)
     this.clearOutbox()

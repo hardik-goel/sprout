@@ -8,12 +8,17 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import App from '@/App'
 import { useStore } from '@/store'
-import { balance, streakInfo, todayKey } from '@/domain'
+import { balance, MAX_CHEERS, streakInfo, todayKey } from '@/domain'
 import { photoStore } from '@/lib/photoStore'
 
 function open(route: string) {
   return render(
-    <MemoryRouter initialEntries={[route]}>
+    // Same future flags as main.tsx, so the tests exercise the router the app
+    // actually ships with — and don't print two upgrade warnings per render.
+    <MemoryRouter
+      initialEntries={[route]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
       <App />
     </MemoryRouter>,
   )
@@ -355,6 +360,60 @@ describe('still to give', () => {
     // Once given, it leaves the queue.
     open('/parent')
     expect(screen.queryByText(/Still to give/)).toBeNull()
+  })
+})
+
+describe('voice cheers', () => {
+  it('records a cheer, lists it, and plays it on the kid celebration', async () => {
+    const user = userEvent.setup()
+
+    // jsdom has no microphone; the store is where the rule lives, so drive it
+    // directly and let the screens prove they render what it produced.
+    const ok = await useStore.getState().addCheer('mem_dadi', null, 'data:audio/webm;base64,AA', 3000)
+    expect(ok).toBe(true)
+
+    open('/parent/cheers')
+    expect(screen.getByText(/Recorded \(1\)/)).toBeInTheDocument()
+    expect(screen.getAllByText(/Dadi/).length).toBeGreaterThan(0)
+    // "Everyone" is both a picker chip and the saved cheer's audience label.
+    expect(screen.getAllByText(/Everyone/).length).toBeGreaterThan(1)
+    cleanupRender()
+
+    // Approving a task is what makes the celebration reachable.
+    const task = useStore
+      .getState()
+      .data.tasks.find((x) => x.childId === 'child_vir' && x.status === 'pending')!
+    useStore.getState().approveTask(task.id)
+
+    open('/kid/celebrate')
+    expect(screen.getByText(/A cheer from Dadi|Tap to hear Dadi/)).toBeInTheDocument()
+    cleanupRender()
+
+    // Deleting it takes the cheer off the celebration too.
+    open('/parent/cheers')
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
+    await waitFor(() => expect(useStore.getState().data.cheers).toHaveLength(0))
+    cleanupRender()
+
+    open('/kid/celebrate')
+    expect(screen.queryByText(/A cheer from|Tap to hear/)).toBeNull()
+  })
+
+  it('refuses a recording too large for localStorage', async () => {
+    const huge = 'data:audio/webm;base64,' + 'A'.repeat(500_000)
+    expect(await useStore.getState().addCheer('mem_dadi', null, huge, 3000)).toBe(false)
+    expect(useStore.getState().data.cheers).toHaveLength(0)
+  })
+
+  it('stops at the cheer cap instead of filling storage', async () => {
+    for (let i = 0; i < MAX_CHEERS; i++) {
+      expect(await useStore.getState().addCheer('mem_aanya', null, `data:audio/webm;base64,A${i}`, 1000)).toBe(true)
+    }
+    expect(await useStore.getState().addCheer('mem_aanya', null, 'data:audio/webm;base64,ZZ', 1000)).toBe(false)
+    expect(useStore.getState().data.cheers).toHaveLength(MAX_CHEERS)
+
+    open('/parent/cheers')
+    expect(screen.getByText(new RegExp(`You can keep ${MAX_CHEERS} cheers`))).toBeInTheDocument()
   })
 })
 

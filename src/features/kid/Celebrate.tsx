@@ -2,12 +2,14 @@
 // a stage, jar thumps up, confetti — then a single button back to the real
 // world. Nothing here rewards staying in the app longer.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Volume2 } from 'lucide-react'
 import { useStore } from '@/store'
 import { GardenVisual } from '@/ui/GardenVisual'
 import { JarVisual } from '@/ui/JarVisual'
-import { jarProgress, unlockedFlowers } from '@/domain'
+import { jarProgress, pickCheer, unlockedFlowers } from '@/domain'
+import { audioStore } from '@/lib/audioStore'
 import { t } from '@/i18n'
 
 const CONFETTI = ['🎉', '⭐', '🌟', '✨', '🎊', '🌈']
@@ -51,6 +53,38 @@ export function Celebrate() {
       clearTimeout(t2)
     }
   }, [toPct])
+
+  // A3 — the recorded cheer. Rotated by approval count so it stays a person and
+  // doesn't decay into a notification sound.
+  const cheer = child ? pickCheer(data.cheers, child.id, child.approvedCount) : null
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [needsTap, setNeedsTap] = useState(false)
+
+  function playCheer() {
+    const src = cheer ? audioStore.url(cheer.audioId) : null
+    if (!src) return
+    audioRef.current?.pause()
+    const el = new Audio(src)
+    audioRef.current = el
+    // Browsers block autoplay outside a user gesture, and how strictly varies.
+    // If it's refused we don't lose the cheer — we offer a button instead.
+    void el
+      .play()
+      .then(() => setNeedsTap(false))
+      .catch(() => setNeedsTap(true))
+  }
+
+  useEffect(() => {
+    if (!cheer) return
+    const timer = setTimeout(playCheer, 600)
+    return () => {
+      clearTimeout(timer)
+      audioRef.current?.pause()
+      audioRef.current = null
+    }
+    // Re-run only when the chosen cheer changes, not on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cheer?.id])
 
   function done() {
     clearCelebration()
@@ -113,6 +147,24 @@ export function Celebrate() {
           <div className="mt-1 text-xs text-white/60">{t('celebrate.jarFilled')}</div>
         </div>
       </div>
+
+      {cheer && (
+        <button
+          onClick={playCheer}
+          className={`z-10 mt-6 flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold ${
+            needsTap ? 'bg-glow text-kidbg1 animate-pop-in' : 'bg-white/10 text-white/70'
+          }`}
+        >
+          <Volume2 size={16} />
+          {needsTap
+            ? t('cheers.tapToHear', {
+                name: data.members.find((m) => m.id === cheer.memberId)?.name ?? '',
+              })
+            : t('cheers.playingFrom', {
+                name: data.members.find((m) => m.id === cheer.memberId)?.name ?? '',
+              })}
+        </button>
+      )}
 
       {goal && (
         <p className="z-10 mt-6 text-center text-sm text-white/70">

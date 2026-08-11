@@ -8,7 +8,7 @@
 
 ### Architecture (the part that makes Phase 2 cheap)
 - **`src/domain/`** — pure TypeScript, zero UI imports: ledger, events, garden, age-fit, rewards,
-  insights, story, entitlements, dates. **122 tests, all passing** (`npm test`) — over the domain
+  insights, story, entitlements, dates. **139 tests, all passing** (`npm test`) — over the domain
   rules, the dictionaries, and every screen rendered with real seeded data.
 - **Event-sourced points ledger** — no stored balances anywhere. Every points change is an
   append-only `LedgerEvent` (`TASK_APPROVED`, `REWARD_REDEEMED`, `POINTS_GIFTED`, `ADJUSTMENT`)
@@ -37,11 +37,11 @@ Reward fulfilment (reachable from the reward menu and from the **"Still to give"
 **Points history** (the ledger read back entry by entry, with the running balance) ·
 **Growth album (A1)** · **Sunday family story (A2, exports a WhatsApp-sized PNG)** ·
 Habit insights [Plus] · Weekly digest [Plus] · Family circle [Plus] · Gift points [Plus] ·
-Save·Spend·Give jars [Plus] · Children · **Language (A4)** · More · Upgrade.
+Save·Spend·Give jars [Plus] · Children · **Voice cheers (A3)** · **Language (A4)** · More · Upgrade.
 
 ### Kid screens
 My Day · Do task (camera + photo) · **Celebrate** (the signature moment: garden stage-up, jar fill,
-confetti, then one button back to the real world) · My Jar (incl. three jars where eligible) ·
+confetti, the recorded voice cheer, then one button back to the real world) · My Jar (incl. three jars where eligible) ·
 Garden world · Rewards shelf.
 
 ### Feature registry coverage
@@ -51,7 +51,7 @@ Garden world · Rewards shelf.
 | P1–P7 | Plus (insights, digest, circle, gift cap, multi-child, three jars, India packs) | ✅ behind `isPlus` |
 | A1 | Growth Album | ✅ (free — it's the hook) |
 | A2 | Sunday Family Story | ✅ (free simple / Plus rich, PNG + share + copy) |
-| A3 | Voice cheers | ⏭ Phase 3 (needs storage) |
+| A3 | Voice cheers | ✅ (free — record up to 6s, rotates, plays on approval) |
 | A4 | Hindi toggle | ✅ (free — chrome, generated sentences, dates and task names all translate) |
 
 ### Rules that are real, not decorative
@@ -67,7 +67,7 @@ templates are even offered. Jar splits use largest-remainder rounding so no poin
 | Database + Auth | Supabase free tier | implement `DataStore` in `src/lib/dataStore.ts` |
 | Photo storage | Supabase Storage | implement `PhotoStore` in `src/lib/photoStore.ts` |
 | Push notifications | web-push (VAPID) | not wired — Phase 3 |
-| Voice cheers (A3) | Supabase Storage | not built — Phase 3 |
+| Voice cheer storage | Supabase Storage | implement `AudioStore` in `src/lib/audioStore.ts` |
 | Payments (Plus) | Razorpay | Upgrade screen flips a local flag only |
 | Deployment | Vercel / Netlify | — |
 | Analytics | Plausible / PostHog | — |
@@ -80,12 +80,11 @@ Placeholders live in `.env.example`. No fake keys anywhere.
 ## 🔜 Not done / next
 - The weekly digest is an in-app screen; real Sunday delivery needs Phase 3 push.
 - Live camera preview (today: file input with `capture`, which opens the camera on mobile).
-- Voice cheers (A3) — needs storage, Phase 3.
 - No automated E2E in a real browser; the screen tests run in jsdom. The flows *were* driven by
   hand in Chrome (see the handoff note), but nothing guards them on every commit.
-- **The story card's PNG export is the one path with no test and no click-through** — canvas is not
-  available in jsdom, and exporting it in the browser means downloading a file. Worth one manual
-  check of "Save image" on the Sunday story, in both languages.
+- The story card's PNG export now has a layout test (a recording canvas context, asserting text
+  stays on the card and the stat tiles never reach the closing line). It has still never been
+  exported for real — worth one manual "Save image" on the Sunday story.
 - Reward titles are shown exactly as the parent typed them, so a reward added in English stays
   English after switching to Hindi. That is deliberate (it is their text, not ours) but it is a
   judgement call worth revisiting.
@@ -96,7 +95,7 @@ Placeholders live in `.env.example`. No fake keys anywhere.
 
 ## 🔁 How to swap mock → real
 
-Everything funnels through two files.
+Everything funnels through three files.
 
 **1. `src/lib/dataStore.ts`** implements:
 ```ts
@@ -116,7 +115,10 @@ Write a `SupabaseDataStore` against the same interface and export it instead. Ta
 **2. `src/lib/photoStore.ts`** implements `put(id, dataUrl) / url(id) / remove(id)`. Swap `put` for a
 Storage upload and `url` for the public URL. Compression already happens before `put` is called.
 
+**3. `src/lib/audioStore.ts`** is the same shape for voice cheers — deliberately separate from
+photos, because the two have different retention and belong in different buckets.
+
 Nothing in `src/features/`, `src/ui/` or `src/domain/` should need to change.
 
 Auth: children have no logins by design — kid mode is a device toggle inside the family account
-(the floating persona switch). RLS should scope everything to a `family_id`.
+(the persona pill at the top of the screen). RLS should scope everything to a `family_id`.

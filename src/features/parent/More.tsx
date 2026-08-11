@@ -5,6 +5,7 @@ import {
   Images,
   Languages,
   Mail,
+  Mic,
   PiggyBank,
   ReceiptText,
   RotateCcw,
@@ -27,6 +28,7 @@ const LINKS: { to: string; icon: typeof Gift; key: string; feature?: Feature }[]
   { to: '/parent/jars', icon: PiggyBank, key: 'more.jars', feature: 'threeJars' },
   { to: '/parent/history', icon: ReceiptText, key: 'more.history' },
   { to: '/parent/children', icon: Users, key: 'more.children' },
+  { to: '/parent/cheers', icon: Mic, key: 'more.cheers' },
   { to: '/parent/language', icon: Languages, key: 'more.language' },
   { to: '/parent/upgrade', icon: Sparkles, key: 'more.upgrade' },
 ]

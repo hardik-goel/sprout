@@ -148,6 +148,7 @@ function buildData(): AppData {
       { id: 'tpl_read', title: 'Read a story', emoji: '📖', category: 'learning', basePoints: 12, pack: 'basic', packName: 'Little Learner', packKey: 'pack.littleLearner', minAge: 2, maxAge: 8 },
     ],
     tasks,
+    cheers: [],
     rewards: [
       { id: 'rw1', childId: 'c1', title: 'Zoo trip', emoji: '🦁', cost: 60, tags: ['outing'], redeemed: false, redeemedAt: null, fulfilled: false },
     ],

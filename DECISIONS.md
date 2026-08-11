@@ -2,6 +2,40 @@
 
 Every non-trivial choice + one-line why. Newest at top.
 
+## Third session (2026-08-11) — i18n, voice cheers, and what QA changed
+- **Our content translates; the family's does not.** Task templates and pack names are looked up as
+  `task.title.<id>` / `packKey`; reward titles the parent typed are rendered verbatim in any
+  language. The line is "who wrote this string" — us, or them.
+- **A `t()` var may itself be `{ key }`.** This is what lets `src/domain/story.ts` say "the habit of
+  the week was *this task*" while staying language-free. The alternative — the domain returning
+  English and the UI trying to re-translate it — is how you get a bilingual sentence.
+- **Deleted `shortDate`/`weekdayShort`/`monthLabel` from `src/domain/dates.ts`.** They were unused
+  English-only formatters sitting in the pure layer: the exact thing someone reaches for at 2am,
+  after which one screen is quietly half-English. Naming lives in `src/i18n/format.ts`.
+- **The seed carries an opening balance and a redemption.** Modelling the demo's 90 points as
+  `90 - everythingElse` produced a *negative* "carried over from the sticker chart" entry dated
+  mid-history, so the points-history screen opened underwater. The seed now opens with a positive
+  carry-over dated before all history, and Vir has really spent 30 on the sticker pack — which also
+  gives the ledger a spend side and the fulfilment queue something to hold.
+- **`SEED_VERSION` is bumped whenever demo content changes, not just its shape.** A stale seed is
+  how a fixed bug reappears in a demo.
+- **Redeeming keeps the kid in the kid world.** It used to navigate to the parent fulfilment screen
+  after 1.4s. The parent is told through a "Still to give" queue on their own home screen instead.
+- **Entitlements are checked at the write, not only at the button.** `/parent/add-child` was
+  reachable directly. Phase 2 must re-check server-side; the client check is UX.
+- **The persona switch hangs from the top centre.** Bottom-right put it on top of the primary button
+  on the two screens that matter most. Top centre is the one strip every screen leaves empty.
+- **A3 voice cheers are free**, like the Growth Album, and for the same reason: they are the part a
+  family talks about. Cheers rotate by approval count — deterministically, so re-opening the
+  celebration replays the same one, but not the same one forever, which is how a grandmother's voice
+  decays into a notification sound.
+- **`audioStore` is a sibling of `photoStore`, not a shared "blobStore".** Different retention,
+  different bucket, different lifetime; one abstraction over both would have to be un-picked the
+  moment cheers get their own rules.
+- **The story card is tested by recording draw calls, not pixels.** It is the one artefact that
+  leaves the app, and the assertions that matter ("text is on the card", "tiles don't sit on the
+  closing line") are geometric, not visual.
+
 ## Architecture (the rebuild)
 - **Points are event-sourced; balances are never stored.** Every change is an append-only
   `LedgerEvent`; balance, jars, streaks, garden stage and gift caps are derived on read. Cost: a

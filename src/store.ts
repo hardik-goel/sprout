@@ -17,12 +17,14 @@ import type {
   Reward,
   RewardTag,
   TaskTemplate,
+  VoiceCheer,
 } from '@/domain/types'
 import {
   adjustmentEvent,
   ageFitTaskPoints,
   appendEvent,
   approvedTaskCount,
+  canAddCheer,
   balance,
   defaultJarSplit,
   entitlements,
@@ -30,6 +32,7 @@ import {
   GIFT_WEEKLY_CAP,
   jarBalances,
   lifetimeEarned,
+  MAX_CHEER_MS,
   newId,
   normalizeSplit,
   payingJar,
@@ -45,6 +48,7 @@ import {
 } from '@/domain'
 import { dataStore } from '@/lib/dataStore'
 import { photoStore } from '@/lib/photoStore'
+import { audioStore, MAX_CHEER_BYTES } from '@/lib/audioStore'
 import { setLocale as applyLocale } from '@/i18n'
 
 /** A child plus everything derived from the ledger — what screens actually render. */
@@ -112,6 +116,10 @@ interface Store {
     note: string,
   ): { ok: boolean; reason?: string }
   giftAllowance(fromMemberId: string, childId: string): number
+
+  // voice cheers (A3)
+  addCheer(memberId: string, childId: string | null, dataUrl: string, durationMs: number): Promise<boolean>
+  removeCheer(cheerId: string): void
 
   clearCelebration(): void
 }
@@ -460,6 +468,35 @@ export const useStore = create<Store>((set, get) => {
 
     giftAllowance(fromMemberId, childId) {
       return remainingGiftAllowance(get().data.ledger, fromMemberId, childId)
+    },
+
+    async addCheer(memberId, childId, dataUrl, durationMs) {
+      const { data } = get()
+      // Two guards, both about localStorage rather than product policy: a cap
+      // on how many we keep, and a cap on how big one may be.
+      if (!canAddCheer(data.cheers)) return false
+      if (dataUrl.length > MAX_CHEER_BYTES) return false
+
+      const audioId = newId('audio')
+      await audioStore.put(audioId, dataUrl)
+      const cheer: VoiceCheer = {
+        id: newId('cheer'),
+        audioId,
+        memberId,
+        childId,
+        durationMs: Math.min(durationMs, MAX_CHEER_MS),
+        createdAt: new Date().toISOString(),
+      }
+      set((s) => ({ data: { ...s.data, cheers: [...s.data.cheers, cheer] } }))
+      get().persist()
+      return true
+    },
+
+    removeCheer(cheerId) {
+      const cheer = get().data.cheers.find((c) => c.id === cheerId)
+      if (cheer) audioStore.remove(cheer.audioId)
+      set((s) => ({ data: { ...s.data, cheers: s.data.cheers.filter((c) => c.id !== cheerId) } }))
+      get().persist()
     },
 
     clearCelebration() {

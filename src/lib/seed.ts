@@ -10,7 +10,7 @@ import { photoStore } from './photoStore'
 
 // Bumping this re-seeds on next load (see dataStore.load). The demo data is not
 // worth migrating, and a stale seed is how a "fixed" bug reappears in a demo.
-export const SEED_VERSION = 4
+export const SEED_VERSION = 5
 
 let counter = 0
 const uid = (p: string) => `${p}_${(counter++).toString(36).padStart(3, '0')}`
@@ -290,6 +290,10 @@ export function buildSeed(): AppData {
     templates: TASK_TEMPLATES,
     tasks,
     rewards: rewards(`${REDEEM_DAY}T18:00:00.000Z`),
+    // No seeded cheers: a fake one would have to be a synthesised tone, and the
+    // whole point of A3 is that it is a real voice. The screen's empty state
+    // asks for the first recording instead.
+    cheers: [],
     ledger,
   }
 }

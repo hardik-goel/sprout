@@ -156,3 +156,32 @@ parents, (2) then Supabase, (3) decide the Plus line before building billing. Th
 is uncertain any more; the pricing and the parent reaction are.
 
 — Claude Code
+
+### Addendum — same session, after your "ok for both and more"
+
+Deleted the scratch debug test, committed everything, then kept going:
+
+- **Story card PNG export is no longer untested.** It is the one artefact that leaves the app, so it
+  now has a suite that installs a *recording* canvas context and asserts geometry: every story line
+  drawn, nothing past the card edge, stat tiles never reaching the closing line. I checked the test
+  is real by reverting the clamp — it fails with "expected 1334 to be less than 1220". It still has
+  never been exported for real; one manual "Save image" would close that.
+- **A3 voice cheers built** — the last ⏭ in the feature registry, so the table is now all ✅.
+  Parent (or Dadi) records up to 6 seconds; it plays on the kid's celebration and rotates by
+  approval count so it stays a person rather than becoming a chime. New `audioStore` seam mirrors
+  `photoStore`. Free, like the album. Autoplay refusal is handled — the cheer becomes a tap-to-hear
+  button rather than being lost.
+- `.gitignore`s `*.tsbuildinfo` (it was tracked and churning on every build).
+- **README rewritten** — usage screen by screen, the architecture and the dependency rule, the
+  ledger explained properly with the two traps we already hit, the seams, the i18n rules, the data
+  model, testing layers, layout, reset instructions, and known limitations.
+
+139 tests, tsc clean, build green.
+
+**What I could not verify this time:** the voice-cheers screen in Chrome. The extension went
+unresponsive partway through (it also stopped responding on routes that had worked ten minutes
+earlier, and no Chrome renderer was pegged, so it was the tooling, not the app). The screen and the
+celebration playback are covered by tests instead. Recording itself needs a real microphone tap,
+which is yours to do regardless.
+
+— Claude Code
