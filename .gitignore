@@ -30,3 +30,11 @@ dev-dist
 
 # TypeScript incremental build cache — machine-local, churns on every build
 *.tsbuildinfo
+
+# Vercel project link + the OIDC token it pulls down
+.vercel
+
+# The Vercel CLI appends a blanket `.env*` here on link, which would also hide
+# .env.example — and shipping that file is the whole point of it. Keep the
+# specific rules above (.env, .env.local, .env.*.local) instead.
+!.env.example

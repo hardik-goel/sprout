@@ -10,6 +10,8 @@ Two personas, two worlds: **Parent** (warm, paper-coloured, dense with informati
 (deep green, glowing, three taps deep at most). Runs entirely on your machine with no account, no
 keys and no backend.
 
+**Live demo:** <https://sprout-azure.vercel.app>
+
 ---
 
 ## Table of contents
@@ -27,6 +29,7 @@ keys and no backend.
 - [Testing](#testing)
 - [Scripts](#scripts)
 - [Project layout](#project-layout)
+- [Deployment](#deployment)
 - [Local data and how to reset it](#local-data-and-how-to-reset-it)
 - [Phase map — what is real and what is stubbed](#phase-map--what-is-real-and-what-is-stubbed)
 - [Known limitations](#known-limitations)
@@ -398,6 +401,35 @@ src/
 
 ---
 
+## Deployment
+
+**Live:** <https://sprout-azure.vercel.app>
+
+Hosted on Vercel as a static build — there is no server, because there is nothing to serve. All
+state is in the visitor's own browser, so the deployment is the `dist/` folder and nothing else.
+
+```bash
+vercel            # preview deployment
+vercel --prod     # production
+```
+
+`vercel.json` carries three things that matter:
+
+- **SPA rewrites.** The app uses `BrowserRouter`, so `/parent/history` is not a file. Everything
+  falls through to `index.html`. Vercel checks the filesystem *before* rewrites, so real assets
+  still win — without this, refreshing any screen but `/` would 404.
+- **Cache rules.** Hashed `/assets/*` are immutable and cached for a year; `sw.js`,
+  `registerSW.js` and the manifest are `max-age=0, must-revalidate`, or an installed PWA keeps
+  serving a stale app forever.
+- **Headers.** `nosniff`, `SAMEORIGIN`, a strict referrer policy, and a `Permissions-Policy` that
+  grants camera and microphone to the app itself (photo proof and voice cheers need them) while
+  denying geolocation, which the app never asks for.
+
+Note that **each visitor gets their own seeded family** — the deployed link is a demo anyone can
+open, not a shared account. Nothing is transmitted anywhere.
+
+---
+
 ## Local data and how to reset it
 
 Everything lives in `localStorage`:
@@ -421,7 +453,7 @@ site data does the same. Bumping `SEED_VERSION` in `src/lib/seed.ts` forces a re
 | 1 | Full working prototype on local data | ✅ **this repo** |
 | 2 | Supabase (DB, auth, storage), offline sync | needs your logins |
 | 3 | Web push, PWA polish | needs your logins |
-| 4 | Razorpay Plus, deploy, analytics | needs your logins |
+| 4 | Razorpay Plus, analytics | needs your logins (deploy is done) |
 | 5 | Post-launch bets | documented, not built |
 
 | Stub | Provider | Where it plugs in |
@@ -430,7 +462,7 @@ site data does the same. Bumping `SEED_VERSION` in `src/lib/seed.ts` forces a re
 | Photo / audio storage | Supabase Storage | implement `PhotoStore` / `AudioStore` |
 | Push notifications | web-push (VAPID) | not wired |
 | Payments | Razorpay | Upgrade flips a local flag only |
-| Deployment | Vercel / Netlify | — |
+| Deployment | Vercel | ✅ live at sprout-azure.vercel.app |
 | Analytics | Plausible / PostHog | — |
 | Invite a relative | needs auth | visible, disabled |
 

@@ -69,7 +69,7 @@ templates are even offered. Jar splits use largest-remainder rounding so no poin
 | Push notifications | web-push (VAPID) | not wired — Phase 3 |
 | Voice cheer storage | Supabase Storage | implement `AudioStore` in `src/lib/audioStore.ts` |
 | Payments (Plus) | Razorpay | Upgrade screen flips a local flag only |
-| Deployment | Vercel / Netlify | — |
+| Deployment | Vercel | ✅ live at sprout-azure.vercel.app |
 | Analytics | Plausible / PostHog | — |
 | "Invite a relative" | (needs auth) | visible, disabled stub |
 
