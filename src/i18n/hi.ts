@@ -137,6 +137,11 @@ export const hi: Record<string, string> = {
   'photo.take': 'फ़ोटो लें या चुनें',
   'photo.hint': 'दिखाओ तुमने क्या किया!',
   'photo.loading': 'लोड हो रहा है…',
+  'photo.snap': 'फ़ोटो लो',
+  'photo.choose': 'फ़ोटो चुनें',
+  'photo.flip': 'कैमरा बदलें',
+  'photo.cameraDenied': 'यहाँ कैमरा नहीं मिला — फ़ोटो चुन लीजिए।',
+  'photo.captureFailed': 'फ़ोटो नहीं ली जा सकी। फिर कोशिश करें, या कोई फ़ोटो चुनें।',
 
   // --- rewards (parent) ---
   'rewards.title': 'इनाम की सूची',

@@ -131,6 +131,11 @@ export const en: Record<string, string> = {
   'photo.take': 'Take or pick a photo',
   'photo.hint': 'Show what you did!',
   'photo.loading': 'Loading…',
+  'photo.snap': 'Take the photo',
+  'photo.choose': 'Choose a photo',
+  'photo.flip': 'Flip camera',
+  'photo.cameraDenied': 'No camera available here — pick a photo instead.',
+  'photo.captureFailed': 'That didn’t capture. Try again, or pick a photo.',
 
   // --- rewards (parent) ---
   'rewards.title': 'Reward menu',

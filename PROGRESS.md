@@ -8,7 +8,7 @@
 
 ### Architecture (the part that makes Phase 2 cheap)
 - **`src/domain/`** — pure TypeScript, zero UI imports: ledger, events, garden, age-fit, rewards,
-  insights, story, entitlements, dates. **146 tests, all passing** (`npm test`) — over the domain
+  insights, story, entitlements, dates. **151 unit/screen tests plus 23 browser E2E, all passing** (`npm test`) — over the domain
   rules, the dictionaries, and every screen rendered with real seeded data.
 - **Event-sourced points ledger** — no stored balances anywhere. Every points change is an
   append-only `LedgerEvent` (`TASK_APPROVED`, `REWARD_REDEEMED`, `POINTS_GIFTED`, `ADJUSTMENT`)
@@ -54,6 +54,12 @@ Garden world · Rewards shelf.
 | A3 | Voice cheers | ✅ (free — record up to 6s, rotates, plays on approval) |
 | A4 | Hindi toggle | ✅ (free — chrome, generated sentences, dates and task names all translate) |
 
+### Verified in a real browser
+`npm run e2e` drives 23 Playwright tests in mobile Chromium against the *production build*: the full
+loop, undo, deep links resolving through the SPA rewrite, state surviving a reload, the Hindi switch
+reaching task names, an installable manifest with real raster icons, and a no-console-errors sweep
+over every route.
+
 ### Rules that are real, not decorative
 Gift cap of **50 pts/week per member per child** is enforced by summing ledger events, not by a UI
 counter. Age-fit scales task points, goal ceilings, daily task caps, three-jar eligibility and which
@@ -79,12 +85,8 @@ Placeholders live in `.env.example`. No fake keys anywhere.
 
 ## 🔜 Not done / next
 - The weekly digest is an in-app screen; real Sunday delivery needs Phase 3 push.
-- Live camera preview (today: file input with `capture`, which opens the camera on mobile).
-- No automated E2E in a real browser; the screen tests run in jsdom. The flows *were* driven by
-  hand in Chrome (see the handoff note), but nothing guards them on every commit.
-- The story card's PNG export now has a layout test (a recording canvas context, asserting text
-  stays on the card and the stat tiles never reach the closing line). It has still never been
-  exported for real — worth one manual "Save image" on the Sunday story.
+- The story card's PNG export has a layout test, but has still never been exported for real —
+  worth one manual "Save image" on the Sunday story. Same for recording an actual voice cheer.
 - Reward titles are shown exactly as the parent typed them, so a reward added in English stays
   English after switching to Hindi. That is deliberate (it is their text, not ours) but it is a
   judgement call worth revisiting.

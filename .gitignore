@@ -38,3 +38,14 @@ dev-dist
 # .env.example — and shipping that file is the whole point of it. Keep the
 # specific rules above (.env, .env.local, .env.*.local) instead.
 !.env.example
+
+# Claude Code's machine-local settings (and the temp files it writes beside
+# them mid-save). Local paths and permission allowlists — not repo content.
+.claude/settings.local.json
+.claude/settings.local.json.tmp.*
+
+# Playwright run artifacts
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache

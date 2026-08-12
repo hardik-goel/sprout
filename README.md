@@ -337,7 +337,8 @@ Tests fail loudly if a Hindi key, a placeholder, or a task-template name goes mi
 ## Testing
 
 ```bash
-npm test          # 146 tests
+npm test          # 151 unit + screen tests (Vitest, jsdom)
+npm run e2e       # 23 end-to-end tests in real Chromium (Playwright)
 npm run test:watch
 ```
 
@@ -350,10 +351,17 @@ Four layers, each testing something different:
 | `src/i18n/__tests__/` | No missing key, no lost placeholder, no untranslated task template |
 | `src/features/__tests__/` | Every route mounts with real seeded data, and the core loop runs through the actual components |
 | `src/lib/__tests__/storyCard.test.ts` | The exported PNG's layout — text on the card, tiles not colliding with the closing line |
-| `src/ui/__tests__/` | The error boundary puts a way out on the screen, and its reseed clears only Sprout's keys |
+| `src/ui/__tests__/` | The error boundary puts a way out on the screen; the photo capture falls back cleanly when there is no camera |
+| `e2e/` | **A real browser, against the production build**: the loop end to end, deep links resolving through the SPA rewrite, state surviving a reload, an installable manifest, and not one console error across every route |
 
 Domain tests run in plain Node; screen tests run in jsdom (see `vite.config.ts`
-`environmentMatchGlobs`).
+`environmentMatchGlobs`). The E2E suite is a separate runner — `npm test` never invokes it, and
+Vitest is told to skip `e2e/` because Playwright specs share the `*.spec.ts` name.
+
+The browser suite exists for what jsdom structurally cannot see: whether the shipped bundle works,
+whether a deep link resolves in production, and whether one element is sitting on top of another.
+That last one is not hypothetical — a floating button covering the celebration's primary CTA is a
+bug this project shipped once, and `click()` now fails if anything covers it.
 
 ---
 
@@ -366,6 +374,9 @@ npm run preview    # serve the production build
 npm run typecheck  # types only
 npm test           # unit + screen tests
 npm run test:watch # watch mode
+npm run e2e        # end-to-end, in a real browser, against the production build
+npm run e2e:ui     # the same, with Playwright's UI runner
+npm run icons      # regenerate the PWA PNGs from public/icon.svg
 ```
 
 ---
@@ -474,16 +485,13 @@ Placeholders live in `.env.example`. **No fake keys anywhere.**
 
 - **No backend.** Everything is one device, one browser. Clearing site data is a factory reset.
 - **The weekly digest is an in-app screen.** Real Sunday delivery needs Phase 3 push.
-- **The camera is a file input** with `capture`, which opens the camera on mobile — there is no live
-  preview.
-- **Voice cheers need a microphone permission** and a browser with `MediaRecorder`. The screen says
-  so when it can't record.
+- **Voice cheers and the live camera preview need permissions** and a secure origin. Both say so and
+  fall back rather than dead-ending — the camera drops to a file picker, which is also still the
+  better path for a photo taken earlier in the day.
 - **Reward titles don't translate.** Deliberate — they're the parent's words — but a reward typed in
   English stays English after switching to Hindi.
 - **The daily task cap is advisory.** Over the cap you get a warning, not a block. Deliberate; a
   nudge, not a rule.
-- **PWA icons are SVG,** not PNG. Installs fine; generate real PNGs before an app-store-grade launch.
-- **No E2E tests in a real browser.** Screen tests run in jsdom.
 - **Approved tasks cannot be deleted**, only reversed — deleting one would orphan its ledger events
   and leave a hole in the growth album. Un-started tasks can be removed from Home.
 
@@ -498,6 +506,8 @@ Placeholders live in `.env.example`. **No fake keys anywhere.**
   suite will fail otherwise.
 - **New object-returning store selectors must be memoised** against the `AppData` snapshot.
 - **Comments explain *why*.** The code already says what.
+- **Icons are generated, not hand-exported.** Edit `public/icon.svg` and run `npm run icons`; the
+  PNGs are committed so a plain `npm install && npm run build` never needs a browser.
 - **Use `ConfirmSheet`, never `window.confirm`.** Native dialogs are suppressed in some installed-PWA
   contexts, which would let a destructive action fire with no prompt at all.
 
