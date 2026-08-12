@@ -216,3 +216,38 @@ by tests through the real components instead. The two things only you can do rem
 story card once** ("Save image"), and **record a voice cheer** with a real microphone.
 
 — Claude Code
+
+### Addendum 3 — deployed, and the last three limitations closed
+
+**Live: https://sprout-azure.vercel.app** (Vercel, static build). It was not deployed anywhere
+before. `vercel.json` carries the SPA rewrites — without them every screen but `/` 404s on refresh —
+plus cache rules that stop an installed PWA serving a stale app forever, and security headers.
+Repo description, homepage and topics set on GitHub.
+
+Then the three items still sitting in "known limitations":
+
+- **Live camera preview.** Photo proof was a blind file input. Now a real preview with a capture
+  button and a front/rear flip; the file input stays as the fallback and is never hidden behind an
+  error. The stream is released on unmount, so the camera light goes off with the screen.
+- **Real PNG icons.** `npm run icons` rasterises `public/icon.svg` through the Chromium Playwright
+  already brings. The maskable variants are separate images inset into Android's safe zone — tagging
+  an edge-to-edge icon as maskable is how the leaf gets cropped off. Added the apple-touch-icon tag
+  (iOS ignores the manifest) and Open Graph tags.
+- **E2E in a real browser.** 23 Playwright tests in mobile Chromium against the *production build*.
+
+**That last one finally closes the thing I have flagged every session.** The Chrome extension has
+been unresponsive throughout, so I could never confirm the app by eye. The E2E suite does it
+properly and repeatably: the full loop, undo leaving history intact, all 13 routes as deep links,
+state surviving a reload, Hindi reaching task names, an installable manifest, and **zero console
+errors across every route**.
+
+One test is worth calling out: it clicks the celebration's primary button. Playwright fails a click
+if another element would receive it — which is precisely the bug shipped earlier when the persona
+pill sat on top of that CTA. That class of bug is invisible to jsdom, and is now guarded on every
+run.
+
+**Still yours to do, and now easier because it is on HTTPS:** export the story card once
+("Save image"), and record a voice cheer. `getUserMedia` needs a secure origin, so the deployed link
+works where a LAN URL would not.
+
+— Claude Code
