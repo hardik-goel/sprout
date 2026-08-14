@@ -28,6 +28,35 @@ export function ageFitTaskPoints(base: number, age: number): number {
   return Math.max(2, Math.round((base * factor) / 2) * 2)
 }
 
+/**
+ * Bounds on a parent-authored task's points. Not a nanny rule — it keeps a
+ * custom task in the same universe as ours, so one 500-point task can't make
+ * every other task on the screen look pointless.
+ */
+export const CUSTOM_TASK_MIN_POINTS = 2
+export const CUSTOM_TASK_MAX_POINTS = 30
+
+export function clampCustomPoints(points: number): number {
+  return Math.min(CUSTOM_TASK_MAX_POINTS, Math.max(CUSTOM_TASK_MIN_POINTS, Math.round(points)))
+}
+
+/**
+ * What a template is worth for this child. Our templates carry a base cost we
+ * scale by age; a custom task is the parent's own number, typed on a screen
+ * that already said whose tasks these are — quietly halving it would make the
+ * library lie about what it just showed them.
+ */
+export function taskPointsFor(tpl: TaskTemplate, age: number): number {
+  return tpl.pack === 'custom'
+    ? clampCustomPoints(tpl.basePoints)
+    : ageFitTaskPoints(tpl.basePoints, age)
+}
+
+/** Suggested points for a new custom task — our mid-range task, age-scaled. */
+export function ageFitSuggestedTaskPoints(age: number): number {
+  return ageFitTaskPoints(10, age)
+}
+
 /** How many tasks a day is reasonable to assign — more is nagging, not habit. */
 export function ageFitDailyTaskCap(age: number): number {
   return { toddler: 3, preschool: 4, bigkid: 6 }[ageBand(age)]

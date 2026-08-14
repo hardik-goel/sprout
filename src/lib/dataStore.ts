@@ -26,6 +26,12 @@ export interface DataStore {
   queue(events: LedgerEvent[]): void
   outbox(): LedgerEvent[]
   clearOutbox(): void
+  /**
+   * Drop queued events that must never be sent — their subject was deleted
+   * outright (a removed child), so pushing them in Phase 2 would resurrect a
+   * record the parent asked us to forget.
+   */
+  unqueue(predicate: (e: LedgerEvent) => boolean): void
 }
 
 class LocalDataStore implements DataStore {
@@ -92,6 +98,15 @@ class LocalDataStore implements DataStore {
       localStorage.removeItem(OUTBOX_KEY)
     } catch {
       /* ignore */
+    }
+  }
+
+  unqueue(predicate: (e: LedgerEvent) => boolean): void {
+    try {
+      const kept = this.outbox().filter((e) => !predicate(e))
+      localStorage.setItem(OUTBOX_KEY, JSON.stringify(kept))
+    } catch {
+      /* outbox is best-effort in Phase 1 */
     }
   }
 }

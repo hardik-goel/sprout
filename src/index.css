@@ -4,6 +4,12 @@
 
 :root {
   color-scheme: light;
+
+  /* Kid-world palette, as RGB channels so Tailwind's opacity modifiers work.
+     Overridden per child by PhoneFrame — see domain/themes.ts. */
+  --kid-bg1: 12 52 43;
+  --kid-bg2: 17 68 56;
+  --kid-glow: 67 214 160;
 }
 
 html,

@@ -11,7 +11,9 @@ import {
   ReceiptText,
   RotateCcw,
   Share2,
+  ShieldCheck,
   Sparkles,
+  UserCog,
   Users,
 } from 'lucide-react'
 import { useStore } from '@/store'
@@ -22,6 +24,8 @@ import type { Feature } from '@/domain'
 import { t } from '@/i18n'
 
 const LINKS: { to: string; icon: typeof Gift; key: string; feature?: Feature }[] = [
+  { to: '/parent/account', icon: UserCog, key: 'more.account' },
+  { to: '/parent/access', icon: ShieldCheck, key: 'more.access' },
   { to: '/parent/album', icon: Images, key: 'more.album' },
   { to: '/parent/story', icon: Share2, key: 'more.story' },
   { to: '/parent/digest', icon: Mail, key: 'more.digest', feature: 'digest' },

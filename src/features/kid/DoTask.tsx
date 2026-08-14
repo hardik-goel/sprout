@@ -4,13 +4,18 @@ import { PartyPopper } from 'lucide-react'
 import { useStore } from '@/store'
 import { PageHeader } from '@/ui/PageHeader'
 import { PhotoCapture } from '@/ui/PhotoCapture'
+import { playWhoosh } from '@/lib/sfx'
 import { t, taskTitle } from '@/i18n'
 
 export function DoTask() {
   const { taskId } = useParams()
   const nav = useNavigate()
-  const task = useStore((s) => s.data.tasks.find((x) => x.id === taskId))
+  const child = useStore((s) => s.kidChild())
+  const found = useStore((s) => s.data.tasks.find((x) => x.id === taskId))
   const markDone = useStore((s) => s.markDone)
+  // A child can only finish their own task. Sibling views are read-only, and
+  // the route is reachable by hand — so the check lives here, not in the link.
+  const task = found && child && found.childId === child.id ? found : undefined
   const [photo, setPhoto] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -27,6 +32,7 @@ export function DoTask() {
 
   async function submit() {
     setSaving(true)
+    playWhoosh()
     // The photo is already compressed by PhotoCapture; markDone hands it to the
     // photoStore seam and keeps only the id on the task.
     await markDone(task!.id, photo)

@@ -10,6 +10,7 @@ import { GardenVisual } from '@/ui/GardenVisual'
 import { JarVisual } from '@/ui/JarVisual'
 import { jarProgress, pickCheer, unlockedFlowers } from '@/domain'
 import { audioStore } from '@/lib/audioStore'
+import { playChime } from '@/lib/sfx'
 import { t } from '@/i18n'
 
 const CONFETTI = ['🎉', '⭐', '🌟', '✨', '🎊', '🌈']
@@ -20,7 +21,7 @@ export function Celebrate() {
   const celebration = useStore((s) => s.celebration)
   const clearCelebration = useStore((s) => s.clearCelebration)
   const childById = useStore((s) => s.childById)
-  const activeChild = useStore((s) => s.activeChild())
+  const activeChild = useStore((s) => s.kidChild())
 
   const child = (celebration ? childById(celebration.childId) : undefined) ?? activeChild
 
@@ -28,7 +29,10 @@ export function Celebrate() {
   const goal = child ? data.rewards.find((r) => r.id === child.goalId) : undefined
   const afterPts = child?.points ?? 0
   const added = celebration?.pointsAdded ?? 0
-  const beforePts = Math.max(0, afterPts - added)
+  const bonus = celebration?.bonusAdded ?? 0
+  // The jar starts where it was before *both* the task and the day's bonus,
+  // otherwise it appears to jump before the animation even runs.
+  const beforePts = Math.max(0, afterPts - added - bonus)
   const toPct = goal ? jarProgress(afterPts, goal.cost).pct : 0
   const fromPct = goal ? jarProgress(beforePts, goal.cost).pct : 0
 
@@ -46,6 +50,7 @@ export function Celebrate() {
   )
 
   useEffect(() => {
+    playChime()
     const t1 = setTimeout(() => setJarPct(toPct), 350)
     const t2 = setTimeout(() => setShowAdded(true), 250)
     return () => {
@@ -126,6 +131,13 @@ export function Celebrate() {
       )}
       {celebration?.stagedUp && (
         <div className="z-10 mt-2 text-sm font-bold text-gold">{t('celebrate.stagedUp')}</div>
+      )}
+      {/* The finish-the-day bonus lands in the celebration the child is already
+          looking at. A bonus announced on a screen they never open isn't one. */}
+      {(celebration?.bonusAdded ?? 0) > 0 && (
+        <div className="z-10 mt-3 flex animate-pop-in items-center gap-2 rounded-full bg-gold px-5 py-2 font-extrabold text-kidbg1">
+          🏆 {t('celebrate.perfectDay', { n: celebration!.bonusAdded })}
+        </div>
       )}
 
       <div className="z-10 mt-8 flex w-full items-end justify-around">

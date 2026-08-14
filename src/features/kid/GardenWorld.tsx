@@ -1,9 +1,12 @@
 import { useStore } from '@/store'
 import { GardenVisual } from '@/ui/GardenVisual'
 import {
+  DEFAULT_KID_THEME,
   FLOWER_EMOJI,
   FLOWER_MILESTONES,
   nextFlowerMilestone,
+  KID_THEME_ORDER,
+  KID_THEMES,
   nextStageProgress,
   STAGE_EMOJI,
   STAGE_LABEL_KEY,
@@ -13,7 +16,8 @@ import {
 import { t } from '@/i18n'
 
 export function GardenWorld() {
-  const child = useStore((s) => s.activeChild())
+  const child = useStore((s) => s.kidChild())
+  const setChildTheme = useStore((s) => s.setChildTheme)
 
   if (!child) return <div className="px-5 pt-20 text-center text-white/70">{t('kid.noKid')}</div>
 
@@ -36,6 +40,33 @@ export function GardenWorld() {
               })
             : t('garden.maxStage')}
         </div>
+      </div>
+
+      {/* My colours — the one setting in the app that belongs to the child.
+          It changes nothing but the paint, which is exactly why they get it. */}
+      <h2 className="mt-7 text-lg font-extrabold">{t('garden.colours')}</h2>
+      <p className="text-sm text-white/55">{t('garden.coloursHint')}</p>
+      <div className="mt-3 flex gap-3">
+        {KID_THEME_ORDER.map((name) => {
+          const palette = KID_THEMES[name]
+          const picked = (child.theme ?? DEFAULT_KID_THEME) === name
+          return (
+            <button
+              key={name}
+              onClick={() => setChildTheme(child.id, name)}
+              aria-label={t(`theme.${name}`)}
+              aria-pressed={picked}
+              className={`flex h-16 flex-1 flex-col items-center justify-center gap-1 rounded-kid transition active:scale-95 ${
+                picked ? 'ring-2 ring-white' : ''
+              }`}
+              style={{
+                background: `linear-gradient(150deg, rgb(${palette.bg2}), rgb(${palette.glow}))`,
+              }}
+            >
+              <span className="text-xl">{palette.emoji}</span>
+            </button>
+          )
+        })}
       </div>
 
       {/* Growth stages */}

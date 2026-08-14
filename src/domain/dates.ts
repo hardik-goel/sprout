@@ -23,6 +23,45 @@ export function daysBetween(a: string, b: string): number {
   return Math.round((db - da) / 86_400_000)
 }
 
+export interface DayStreak {
+  current: number
+  best: number
+  lastActiveDate: string | null
+  /** A live streak that today has not yet extended — the one worth nudging. */
+  atRisk: boolean
+}
+
+/**
+ * Consecutive-day run over a set of day keys. One function for every streak in
+ * the app: the child's approved-task days and the parent's open-the-app days
+ * are the same arithmetic, and the second one is not worth a second copy of it.
+ *
+ * A run whose last day is older than yesterday is over, so `current` is 0.
+ */
+export function dayStreak(days: Iterable<string>, today: string = todayKey()): DayStreak {
+  const sorted = [...new Set(days)].sort()
+  if (sorted.length === 0) return { current: 0, best: 0, lastActiveDate: null, atRisk: false }
+
+  let best = 1
+  let run = 1
+  for (let i = 1; i < sorted.length; i++) {
+    run = addDays(sorted[i - 1], 1) === sorted[i] ? run + 1 : 1
+    if (run > best) best = run
+  }
+
+  const last = sorted[sorted.length - 1]
+  let current = 0
+  if (last === today || addDays(last, 1) === today) {
+    current = 1
+    for (let i = sorted.length - 1; i > 0; i--) {
+      if (addDays(sorted[i - 1], 1) === sorted[i]) current++
+      else break
+    }
+  }
+
+  return { current, best, lastActiveDate: last, atRisk: current > 0 && last !== today }
+}
+
 /** ISO-week key like "2026-W26" — the bucket the gift cap sums over. */
 export function weekKey(d: Date | string = new Date()): string {
   const date = typeof d === 'string' ? dateFromKey(d) : d

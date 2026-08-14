@@ -1,17 +1,16 @@
-import { useState } from 'react'
-import { Lock, PiggyBank, Sparkles } from 'lucide-react'
+import { PartyPopper, PiggyBank, Sparkles } from 'lucide-react'
 import { useStore } from '@/store'
 import { JarVisual } from '@/ui/JarVisual'
 import { jarProgress, rewardsForChild, supportsThreeJars } from '@/domain'
 import { t } from '@/i18n'
 
+// The kid's jar is a window, not a control panel. Choosing the goal and
+// handing a reward over are both parent decisions — a four-year-old cashing
+// out their own zoo trip at 9pm is the argument this app exists to prevent.
 export function MyJar() {
   const data = useStore((s) => s.data)
-  const child = useStore((s) => s.activeChild())
-  const setGoal = useStore((s) => s.setGoal)
-  const redeemReward = useStore((s) => s.redeemReward)
+  const child = useStore((s) => s.kidChild())
   const can = useStore((s) => s.can)
-  const [toast, setToast] = useState<string | null>(null)
 
   if (!child) return <div className="px-5 pt-20 text-center text-white/70">{t('kid.noKid')}</div>
 
@@ -20,19 +19,6 @@ export function MyJar() {
   const available = rewardsForChild(data.rewards, child.id).filter((r) => !r.redeemed)
   // P6: three jars are for kids old enough to weigh a trade-off, on Plus.
   const showThreeJars = supportsThreeJars(child.age) && can.can('threeJars')
-
-  // Redeeming used to bounce the kid into the parent world to "fulfil" the
-  // reward. A three-year-old should never be dropped into the settings app —
-  // the kid stays here, and the parent picks it up from the "still to give"
-  // queue on their own home screen.
-  function spend(rewardId: string) {
-    const ok = redeemReward(child!.id, rewardId)
-    if (ok) {
-      const r = data.rewards.find((x) => x.id === rewardId)
-      setToast(t('kid.youGot', { emoji: r?.emoji ?? '', title: r?.title ?? '' }))
-      setTimeout(() => setToast(null), 2600)
-    }
-  }
 
   return (
     <div className="px-5 pb-6 pt-8">
@@ -58,7 +44,7 @@ export function MyJar() {
                 : t('kid.goalReached', { emoji: goal.emoji })}
             </p>
           ) : (
-            <p className="text-sm text-white/70">{t('kid.pickSomething')}</p>
+            <p className="text-sm text-white/70">{t('kid.grownupPicksGoal')}</p>
           )}
         </div>
       </div>
@@ -101,31 +87,23 @@ export function MyJar() {
                 <div className="text-sm text-white/60">{t('common.pts', { n: r.cost })}</div>
               </div>
               {afford ? (
-                <button
-                  onClick={() => spend(r.id)}
-                  className="rounded-full bg-glow px-4 py-2 text-sm font-bold text-kidbg1 active:scale-95"
-                >
-                  {t('kid.spend')}
-                </button>
+                <span className="chip bg-glow/20 text-glow">
+                  <PartyPopper size={13} /> {t('kid.readyAskGrownup')}
+                </span>
               ) : isGoal ? (
                 <span className="chip bg-glow/15 text-glow">
                   <Sparkles size={13} /> {t('kid.saving')}
                 </span>
               ) : (
-                <button onClick={() => setGoal(child.id, r.id)} className="chip bg-white/10 text-white/70">
-                  <Lock size={13} /> {t('kid.saveForThis')}
-                </button>
+                <span className="chip bg-white/10 text-white/60">
+                  {t('kid.keepSaving', { n: r.cost - child.points })}
+                </span>
               )}
             </div>
           )
         })}
       </div>
 
-      {toast && (
-        <div className="fixed inset-x-0 bottom-28 z-50 mx-auto w-[90%] max-w-[400px] rounded-2xl bg-glow px-4 py-3 text-center font-bold text-kidbg1 shadow-glow">
-          {toast}
-        </div>
-      )}
     </div>
   )
 }

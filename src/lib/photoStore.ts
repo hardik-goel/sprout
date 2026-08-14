@@ -15,6 +15,10 @@ export interface PhotoStore {
   remove(id: string): void
   /** Drop every stored photo. Called when the app data is reset. */
   clear(): void
+  /** Every photo as `id -> dataUrl`. Used to write a backup file. */
+  entries(): Record<string, string>
+  /** Replace the whole set from a backup. */
+  restore(entries: Record<string, string>): void
 }
 
 /** Longest edge in px after compression — plenty for a proof-of-chore photo. */
@@ -106,6 +110,36 @@ class LocalPhotoStore implements PhotoStore {
       for (const k of stale) localStorage.removeItem(k)
     } catch {
       /* ignore */
+    }
+  }
+
+  entries(): Record<string, string> {
+    if (!hasStorage()) return {}
+    const out: Record<string, string> = {}
+    try {
+      for (const k of Object.keys(localStorage)) {
+        if (!k.startsWith(PREFIX)) continue
+        const v = localStorage.getItem(k)
+        if (v) out[k.slice(PREFIX.length)] = v
+      }
+    } catch {
+      /* ignore */
+    }
+    return out
+  }
+
+  restore(entries: Record<string, string>): void {
+    if (!hasStorage()) return
+    this.clear()
+    try {
+      for (const [id, dataUrl] of Object.entries(entries)) {
+        localStorage.setItem(PREFIX + id, dataUrl)
+      }
+    } catch (e) {
+      // A backup bigger than the quota restores partially: the tasks and the
+      // ledger still come back, some photos don't. Better than refusing the
+      // whole restore over the least important bytes in the file.
+      console.warn('[photoStore] backup did not fit, some photos were dropped', e)
     }
   }
 }

@@ -4,9 +4,13 @@ import {
   ageFitDailyTaskCap,
   ageFitGoalMax,
   ageFitTaskPoints,
+  clampCustomPoints,
+  CUSTOM_TASK_MAX_POINTS,
+  CUSTOM_TASK_MIN_POINTS,
   defaultJarSplit,
   isAgeAppropriate,
   supportsThreeJars,
+  taskPointsFor,
 } from '../ageFit'
 import {
   didStageUp,
@@ -72,6 +76,42 @@ describe('age-fit', () => {
     }
     expect(isAgeAppropriate(tpl, 3)).toBe(false)
     expect(isAgeAppropriate(tpl, 6)).toBe(true)
+  })
+
+  it('age-scales our templates but never a task the parent wrote', () => {
+    const ours: TaskTemplate = {
+      id: 'tpl_teeth',
+      title: 'Brush teeth',
+      emoji: '🪥',
+      category: 'health',
+      basePoints: 10,
+      pack: 'basic',
+      packName: 'Daily Basics',
+      packKey: 'pack.basics',
+      minAge: 2,
+      maxAge: 8,
+    }
+    const theirs: TaskTemplate = {
+      ...ours,
+      id: 'tpl_dog',
+      title: 'Feed the dog',
+      pack: 'custom',
+      packName: 'Your own tasks',
+      packKey: 'pack.custom',
+    }
+    // A 3-year-old's version of our task is worth less...
+    expect(taskPointsFor(ours, 3)).toBe(6)
+    expect(taskPointsFor(ours, 7)).toBe(10)
+    // ...but a number the parent typed is the number the parent typed.
+    expect(taskPointsFor(theirs, 3)).toBe(10)
+    expect(taskPointsFor(theirs, 7)).toBe(10)
+  })
+
+  it('keeps a custom task’s points in the same universe as ours', () => {
+    expect(clampCustomPoints(500)).toBe(CUSTOM_TASK_MAX_POINTS)
+    expect(clampCustomPoints(0)).toBe(CUSTOM_TASK_MIN_POINTS)
+    expect(clampCustomPoints(-4)).toBe(CUSTOM_TASK_MIN_POINTS)
+    expect(clampCustomPoints(11.4)).toBe(11)
   })
 })
 

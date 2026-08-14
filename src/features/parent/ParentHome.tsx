@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Camera, CheckCircle2, ChevronRight, Gift, Plus, Users, X } from 'lucide-react'
+import { Camera, CheckCircle2, ChevronRight, Flame, Gift, Plus, Users, X } from 'lucide-react'
 import { useStore } from '@/store'
 import { PageHeader } from '@/ui/PageHeader'
 import { ConfirmSheet } from '@/ui/ConfirmSheet'
@@ -15,6 +15,7 @@ export function ParentHome() {
   const activeChild = useStore((s) => s.activeChild())
   const setActiveChild = useStore((s) => s.setActiveChild)
   const removeTask = useStore((s) => s.removeTask)
+  const parentStreak = useStore((s) => s.parentStreak())
   const [removing, setRemoving] = useState<string | null>(null)
 
   if (!activeChild) {
@@ -44,12 +45,26 @@ export function ParentHome() {
         title={t('home.greeting', { name: data.parentName })}
         subtitle={t('home.subtitle')}
         right={
-          <Link
-            to="/parent/children"
-            className="flex items-center gap-1 rounded-full border border-line bg-white px-3 py-2 text-sm font-semibold"
-          >
-            <Users size={16} /> {data.children.length}
-          </Link>
+          <div className="flex items-center gap-2">
+            {/* The parent's own streak. Showing up is the part of this that
+                actually predicts whether the habit sticks, so it is counted
+                and shown — with no points attached, because a parent earning
+                points off their child's chart would be absurd. */}
+            {parentStreak.current > 0 && (
+              <span
+                className="chip bg-gold/15 text-gold"
+                title={t('parentStreak.title', { n: parentStreak.current })}
+              >
+                <Flame size={14} fill="#F0A92E" /> {parentStreak.current}
+              </span>
+            )}
+            <Link
+              to="/parent/children"
+              className="flex items-center gap-1 rounded-full border border-line bg-white px-3 py-2 text-sm font-semibold"
+            >
+              <Users size={16} /> {data.children.length}
+            </Link>
+          </div>
         }
       />
 

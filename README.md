@@ -101,8 +101,8 @@ Bottom nav: **Home · Tasks · Rewards · Insights · More**.
 | Screen | Route | What it does |
 |---|---|---|
 | **Home** | `/parent` | Child switcher, goal + streak hero, *Needs your approval*, **Still to give** (rewards paid for but not handed over), today's tasks, done today |
-| **Task library** | `/parent/tasks` | Assign tasks, filtered to the child's age. Shows a daily-cap hint. Plus packs are visible but locked |
-| **Reward menu** | `/parent/rewards` | Add rewards, set the child's goal. Tagging one *screen* or *sweet* triggers a gentle healthy nudge with one-tap alternatives — **"Add anyway" is still the primary button** |
+| **Task library** | `/parent/tasks` | Assign tasks, filtered to the child's age. **New** writes your own task; **Every day** makes one a routine that reappears each morning. Shows a daily-cap hint. Plus packs are visible but locked |
+| **Reward menu** | `/parent/rewards` | Add rewards, set the child's goal, and spend the jar (**Give it now**) once they can afford it. Tagging one *screen* or *sweet* triggers a gentle healthy nudge with one-tap alternatives — **"Add anyway" is still the primary button** |
 | **Approve** | `/parent/approve/:taskId` | The photo, the points, and three choices: approve, ask to try again, not yet |
 | **Reward fulfilment** | `/parent/reward/:rewardId` | Mark a redeemed reward as actually given |
 | **Points history** | `/parent/history` | The ledger, read back entry by entry with the running balance |
@@ -115,7 +115,9 @@ Bottom nav: **Home · Tasks · Rewards · Insights · More**.
 | **Family circle** | `/parent/circle` | Who's in the family and what they've gifted. *Plus* |
 | **Gift points** | `/parent/gift` | Relatives gift points, capped at 50/week each. *Plus* |
 | **Save · Spend · Give** | `/parent/jars` | Three-jar split for kids old enough. *Plus* |
-| **Children** | `/parent/children` | Switch or add a child |
+| **Children** | `/parent/children` | Switch, rename, or remove a child (removing takes their whole history with it) |
+| **Account** | `/parent/account` | Your details, plan, sounds, storage used, backup file, start fresh |
+| **Sign-in & locks** | `/parent/access` | The parent PIN, each child's PIN and sign-in name, and sibling visibility |
 | **More / Upgrade** | `/parent/more`, `/parent/upgrade` | Everything else; Plus flips a local flag |
 
 ### Kid world
@@ -124,11 +126,12 @@ Bottom nav: **My Day · Garden · My Jar · Rewards**.
 
 | Screen | Route | What it does |
 |---|---|---|
-| **My Day** | `/kid` | Today's tasks, the garden and jar at a glance, and a banner when a grown-up has just approved something |
+| **Who's playing?** | `/kid` (when a PIN is set) | The child taps their own face and types their 4 digits — then sees only their own day |
+| **My Day** | `/kid` | Today's tasks with a one-tap tick, the finish-the-day bonus, the garden and jar at a glance, a banner when a grown-up has just approved something, and (if a parent allows it) a read-only look at a sibling's day |
 | **Do task** | `/kid/task/:taskId` | Take the photo, tap **I did it!** |
 | **Celebrate** | `/kid/celebrate` | The signature moment: garden stage-up, jar fill, confetti, voice cheer — then one button out |
-| **My Jar** | `/kid/jar` | Progress to the goal, three jars where eligible, spend vs save |
-| **Garden** | `/kid/garden` | The garden and the flowers unlocked by streaks |
+| **My Jar** | `/kid/jar` | Progress to the goal, three jars where eligible. Read-only: choosing a goal and spending points are parent actions |
+| **Garden** | `/kid/garden` | The garden, the flowers unlocked by streaks, and **My colours** — five palettes, the one thing in the app the child decides |
 | **Rewards shelf** | `/kid/rewards` | What they can get now, and what to keep saving for |
 
 ### Things worth poking
@@ -139,6 +142,15 @@ Bottom nav: **My Day · Garden · My Jar · Rewards**.
   and dates are all Hindi; a reward *you* typed stays exactly as you typed it.
 - **Plus** (More → Sprout Plus) flips `isPlus` locally and unlocks the gated screens instantly.
 - **Undo** an approval, then read **Points history**. The original entry is still there.
+- **Finish a child's whole day.** Clearing every assigned task pays a bonus worth about one task
+  (6/8/10 pts by age band), once per day. Undo the last approval and the bonus is reversed too —
+  by appending, like everything else.
+- **Every day** on a task in the library. Delete today's copy, reload, and it is back tomorrow.
+- **Sign-in & locks → set a parent PIN**, then tap the pill to the kid view and back. The parent
+  world re-locks on the way down, so the PIN is asked for every time — not once a day.
+- **Give a child a PIN**, reload `/kid`, and the world starts at "Who's playing?".
+- **Account → Save a backup file**, then **Start fresh**, then restore the file. Photos and voice
+  cheers come back with it.
 
 ---
 
@@ -152,6 +164,11 @@ Bottom nav: **My Day · Garden · My Jar · Rewards**.
 | A2 | Sunday Family Story | ✅ free (simple) / Plus (rich), PNG export + share + copy |
 | A3 | Voice cheers | ✅ free |
 | A4 | Hindi | ✅ free |
+| C1 | Custom tasks (write your own) + daily routines | ✅ free |
+| C2 | Finish-the-day bonus + parent's own open-the-app streak | ✅ free |
+| C3 | Parent PIN, per-child PIN + sign-in name, sibling read-only visibility | ✅ free |
+| C4 | Account: details, plan, sounds, storage, backup file, start fresh | ✅ free |
+| C5 | Kid colour palettes, whoosh/chime sounds | ✅ free |
 
 **Age-fit is real, not decorative.** A child's age scales task points, the goal ceiling, the daily
 task cap, three-jar eligibility, and which templates are even offered. A 2-year-old is never shown
@@ -324,9 +341,11 @@ Tests fail loudly if a Hindi key, a placeholder, or a task-template name goes mi
 | `version` | Bumping `SEED_VERSION` re-seeds; demo data is not migrated |
 | `locale` | `'en' \| 'hi'` |
 | `parentName`, `onboarded`, `isPlus`, `activeChildId` | Account-level |
-| `children` | `Child` — age, avatar, chosen `goalId`, `jarSplit` |
+| `parentEmail`, `parentPhone`, `createdAt`, `plusSince`, `soundOn` | Optional account details. Optional on purpose — they were added after data was in the wild, and an existing install must keep working rather than be re-seeded |
+| `parentPinHash`, `parentDays` | The parent's screen lock, and the days they opened the app (their streak is derived from it) |
+| `children` | `Child` — age, avatar, chosen `goalId`, `jarSplit`, `pinHash`, `username`, `theme`, `canSeeSiblings`, `dailyTemplateIds` |
 | `members` | Parent + relatives (the family circle) |
-| `templates` | `TaskTemplate` — our content, with `packKey` for i18n |
+| `templates` | `TaskTemplate` — our content, with `packKey` for i18n. A parent's own task is `pack: 'custom'`: never translated, never age-scaled |
 | `tasks` | `AssignedTask` — `todo → pending → approved`, holds a `photoId` |
 | `rewards` | `Reward` — cost, tags, `redeemed`, `fulfilled` |
 | `cheers` | `VoiceCheer` — holds an `audioId` |
@@ -337,8 +356,8 @@ Tests fail loudly if a Hindi key, a placeholder, or a task-template name goes mi
 ## Testing
 
 ```bash
-npm test          # 151 unit + screen tests (Vitest, jsdom)
-npm run e2e       # 23 end-to-end tests in real Chromium (Playwright)
+npm test          # 194 unit + screen tests (Vitest, jsdom)
+npm run e2e       # 25 end-to-end tests in real Chromium (Playwright)
 npm run test:watch
 ```
 
@@ -351,6 +370,8 @@ Four layers, each testing something different:
 | `src/i18n/__tests__/` | No missing key, no lost placeholder, no untranslated task template |
 | `src/features/__tests__/` | Every route mounts with real seeded data, and the core loop runs through the actual components |
 | `src/lib/__tests__/storyCard.test.ts` | The exported PNG's layout — text on the card, tiles not colliding with the closing line |
+| `src/lib/__tests__/backup.test.ts` | A backup round-trips the whole family, and a file we don't fully recognise is refused rather than half-restored |
+| `src/domain/__tests__/bonus.test.ts` | The finish-the-day bonus, PIN validation/hashing, and the streak arithmetic both streaks share |
 | `src/ui/__tests__/` | The error boundary puts a way out on the screen; the photo capture falls back cleanly when there is no camera |
 | `e2e/` | **A real browser, against the production build**: the loop end to end, deep links resolving through the SPA rewrite, state surviving a reload, an installable manifest, and not one console error across every route |
 
@@ -483,7 +504,15 @@ Placeholders live in `.env.example`. **No fake keys anywhere.**
 
 ## Known limitations
 
-- **No backend.** Everything is one device, one browser. Clearing site data is a factory reset.
+- **No backend, and no login.** Everything is one device, one browser. There is nothing to sign in
+  to and nothing to sign out of; **Account → Save a backup file** is how a family moves phones or
+  survives clearing site data.
+- **PINs are child locks, not security.** Four digits, hashed but kept on the device they guard.
+  They stop a curious six-year-old, not an adult holding the phone. `src/domain/pin.ts` says so at
+  the top, and so does the Sign-in & locks screen.
+- **One goal at a time.** A child saves toward one reward; the rest sit on the shelf and a parent
+  can switch the goal whenever. That is the jar metaphor, not a missing feature — but it does mean
+  "saving for two things at once" is not expressible today.
 - **The weekly digest is an in-app screen.** Real Sunday delivery needs Phase 3 push.
 - **Voice cheers and the live camera preview need permissions** and a secure origin. Both say so and
   fall back rather than dead-ending — the camera drops to a file picker, which is also still the

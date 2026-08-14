@@ -1,31 +1,17 @@
-import { useState } from 'react'
-import { Check, Star, Target } from 'lucide-react'
+import { Check, PartyPopper, Star, Target } from 'lucide-react'
 import { useStore } from '@/store'
 import { jarProgress, rewardsForChild } from '@/domain'
 import { t } from '@/i18n'
 
+// Look, want, save. Spending the points is a parent's tap, on the parent's
+// screen — see the note in MyJar.
 export function RewardsShelf() {
   const data = useStore((s) => s.data)
-  const child = useStore((s) => s.activeChild())
-  const setGoal = useStore((s) => s.setGoal)
-  const redeemReward = useStore((s) => s.redeemReward)
-  const [toast, setToast] = useState<string | null>(null)
+  const child = useStore((s) => s.kidChild())
 
   if (!child) return <div className="px-5 pt-20 text-center text-white/70">{t('kid.noKid')}</div>
 
   const rewards = rewardsForChild(data.rewards, child.id)
-
-  // Stay in the kid world after redeeming — see the note in MyJar. The parent
-  // is told about it through the "still to give" queue on their home screen.
-  function get(rewardId: string, cost: number) {
-    if (child!.points < cost) return
-    const ok = redeemReward(child!.id, rewardId)
-    if (ok) {
-      const r = data.rewards.find((x) => x.id === rewardId)
-      setToast(t('kid.yay', { emoji: r?.emoji ?? '', title: r?.title ?? '' }))
-      setTimeout(() => setToast(null), 2600)
-    }
-  }
 
   return (
     <div className="px-5 pb-6 pt-8">
@@ -56,20 +42,17 @@ export function RewardsShelf() {
                     <Check size={14} /> {t('shelf.gotIt')}
                   </span>
                 ) : afford ? (
-                  <button
-                    onClick={() => get(r.id, r.cost)}
-                    className="rounded-full bg-glow px-4 py-2 text-sm font-bold text-kidbg1 active:scale-95"
-                  >
-                    {t('shelf.getIt')}
-                  </button>
+                  <span className="chip bg-glow/20 text-glow">
+                    <PartyPopper size={14} /> {t('kid.readyAskGrownup')}
+                  </span>
                 ) : isGoal ? (
                   <span className="chip bg-gold/20 text-gold">
                     <Target size={14} /> {t('reward.goalChip')}
                   </span>
                 ) : (
-                  <button onClick={() => setGoal(child.id, r.id)} className="chip bg-white/10 text-white/70">
-                    {t('kid.saveForThis')}
-                  </button>
+                  <span className="chip bg-white/10 text-white/60">
+                    {t('kid.keepSaving', { n: r.cost - child.points })}
+                  </span>
                 )}
               </div>
               {!r.redeemed && !afford && (
@@ -85,11 +68,6 @@ export function RewardsShelf() {
         })}
       </div>
 
-      {toast && (
-        <div className="fixed inset-x-0 bottom-28 z-50 mx-auto w-[90%] max-w-[400px] rounded-2xl bg-glow px-4 py-3 text-center font-bold text-kidbg1 shadow-glow">
-          {toast}
-        </div>
-      )}
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useStore } from './store'
 import { setLocale } from './i18n'
@@ -5,6 +6,8 @@ import { ParentLayout, KidLayout } from './ui/Layouts'
 
 // Parent screens
 import { Onboarding } from './features/parent/Onboarding'
+import { Account } from './features/parent/Account'
+import { Access } from './features/parent/Access'
 import { AddChild } from './features/parent/AddChild'
 import { ParentHome } from './features/parent/ParentHome'
 import { TaskLibrary } from './features/parent/TaskLibrary'
@@ -36,6 +39,16 @@ import { RewardsShelf } from './features/kid/RewardsShelf'
 export default function App() {
   const onboarded = useStore((s) => s.data.onboarded)
   const locale = useStore((s) => s.data.locale)
+  const ensureTodaysTasks = useStore((s) => s.ensureTodaysTasks)
+  const recordParentVisit = useStore((s) => s.recordParentVisit)
+
+  // Two things happen once per app open: the day's routine tasks appear
+  // (so a parent isn't re-assigning "brush teeth" every morning), and the
+  // parent's own streak counts the visit. Both are idempotent.
+  useEffect(() => {
+    ensureTodaysTasks()
+    recordParentVisit()
+  }, [ensureTodaysTasks, recordParentVisit])
 
   // App subscribes to the locale and applies it before anything renders, so a
   // language change re-renders the whole tree with the new dictionary.
@@ -64,6 +77,8 @@ export default function App() {
         <Route path="/parent/circle" element={<FamilyCircle />} />
         <Route path="/parent/gift" element={<GiftPoints />} />
         <Route path="/parent/children" element={<Children />} />
+        <Route path="/parent/account" element={<Account />} />
+        <Route path="/parent/access" element={<Access />} />
         <Route path="/parent/history" element={<PointsHistory />} />
         <Route path="/parent/language" element={<Language />} />
         <Route path="/parent/cheers" element={<VoiceCheers />} />

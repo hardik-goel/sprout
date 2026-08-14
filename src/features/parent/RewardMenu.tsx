@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Plus, Target, X } from 'lucide-react'
+import { Gift, Heart, Plus, Target, X } from 'lucide-react'
 import { useStore } from '@/store'
 import { PageHeader } from '@/ui/PageHeader'
 import {
@@ -29,6 +29,7 @@ export function RewardMenu() {
   const activeChild = useStore((s) => s.activeChild())
   const addReward = useStore((s) => s.addReward)
   const setGoal = useStore((s) => s.setGoal)
+  const redeemReward = useStore((s) => s.redeemReward)
 
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
@@ -109,19 +110,33 @@ export function RewardMenu() {
                   {r.fulfilled ? t('fulfil.given') : t('reward.openFulfil')}
                 </Link>
               ) : (
-                activeChild &&
-                (isGoal ? (
-                  <span className="chip bg-sprout/15 text-sprout">
-                    <Target size={14} /> {t('reward.goalChip')}
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => setGoal(activeChild.id, r.id)}
-                    className="btn-ghost px-3 py-2 text-sm"
-                  >
-                    {t('reward.setGoal')}
-                  </button>
-                ))
+                activeChild && (
+                  <div className="flex flex-col items-end gap-1">
+                    {/* Spending the jar is a parent's decision, taken on the
+                        parent's screen. The child's shelf shows "ready — ask a
+                        grown-up"; this is the grown-up. */}
+                    {activeChild.points >= r.cost && (
+                      <button
+                        onClick={() => redeemReward(activeChild.id, r.id)}
+                        className="btn-primary px-3 py-2 text-sm"
+                      >
+                        <Gift size={14} /> {t('reward.redeemNow')}
+                      </button>
+                    )}
+                    {isGoal ? (
+                      <span className="chip bg-sprout/15 text-sprout">
+                        <Target size={14} /> {t('reward.goalChip')}
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setGoal(activeChild.id, r.id)}
+                        className="btn-ghost px-3 py-2 text-sm"
+                      >
+                        {t('reward.setGoal')}
+                      </button>
+                    )}
+                  </div>
+                )
               )}
             </div>
           )

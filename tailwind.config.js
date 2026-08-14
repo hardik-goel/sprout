@@ -12,9 +12,11 @@ export default {
         line: '#ECE6DA',
         muted: '#8B948E',
         // Kid world — deep, playful
-        kidbg1: '#0C342B',
-        kidbg2: '#114438',
-        glow: '#43D6A0',
+        // Driven by CSS vars so a child can repaint their own world; the
+        // `<alpha-value>` placeholder is what keeps `bg-glow/15` working.
+        kidbg1: 'rgb(var(--kid-bg1) / <alpha-value>)',
+        kidbg2: 'rgb(var(--kid-bg2) / <alpha-value>)',
+        glow: 'rgb(var(--kid-glow) / <alpha-value>)',
         // Streak flame
         berry: '#E2725B',
       },
@@ -56,6 +58,23 @@ export default {
           '0%, 100%': { transform: 'scale(1) rotate(-2deg)' },
           '50%': { transform: 'scale(1.12) rotate(2deg)' },
         },
+        // A wrong PIN says so without words — the pad shakes the way a locked
+        // door rattles, which a five-year-old reads faster than any message.
+        'shake': {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '20%, 60%': { transform: 'translateX(-7px)' },
+          '40%, 80%': { transform: 'translateX(7px)' },
+        },
+        // The finish-a-task tick: draw the circle, then punch the check in.
+        'check-pop': {
+          '0%': { transform: 'scale(0.3)', opacity: '0' },
+          '50%': { transform: 'scale(1.25)', opacity: '1' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        'float-up': {
+          '0%': { transform: 'translateY(0) scale(1)', opacity: '1' },
+          '100%': { transform: 'translateY(-46px) scale(1.15)', opacity: '0' },
+        },
       },
       animation: {
         'pop-in': 'pop-in 0.4s ease-out',
@@ -63,6 +82,9 @@ export default {
         'grow-up': 'grow-up 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
         'confetti': 'confetti 1.2s ease-out forwards',
         'flame': 'flame 1.6s ease-in-out infinite',
+        'shake': 'shake 0.4s ease-in-out',
+        'check-pop': 'check-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'float-up': 'float-up 0.9s ease-out forwards',
       },
     },
   },

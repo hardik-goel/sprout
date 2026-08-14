@@ -19,6 +19,10 @@ export interface AudioStore {
   url(id: string | null): string | null
   remove(id: string): void
   clear(): void
+  /** Every cheer as `id -> dataUrl`. Used to write a backup file. */
+  entries(): Record<string, string>
+  /** Replace the whole set from a backup. */
+  restore(entries: Record<string, string>): void
 }
 
 /**
@@ -89,6 +93,33 @@ class LocalAudioStore implements AudioStore {
       }
     } catch {
       /* ignore */
+    }
+  }
+
+  entries(): Record<string, string> {
+    if (!hasStorage()) return {}
+    const out: Record<string, string> = {}
+    try {
+      for (const k of Object.keys(localStorage)) {
+        if (!k.startsWith(PREFIX)) continue
+        const v = localStorage.getItem(k)
+        if (v) out[k.slice(PREFIX.length)] = v
+      }
+    } catch {
+      /* ignore */
+    }
+    return out
+  }
+
+  restore(entries: Record<string, string>): void {
+    if (!hasStorage()) return
+    this.clear()
+    try {
+      for (const [id, dataUrl] of Object.entries(entries)) {
+        localStorage.setItem(PREFIX + id, dataUrl)
+      }
+    } catch (e) {
+      console.warn('[audioStore] backup did not fit, some cheers were dropped', e)
     }
   }
 }

@@ -171,6 +171,35 @@ function todayPlanFor(
   })
 }
 
+/**
+ * An empty family, for a parent who wants their own kids and not our demo one.
+ *
+ * The demo is the pitch, but a real family opening this on day one should not
+ * have to delete Vir and Ira before they can start. Onboarding runs again from
+ * here: their name, then their first child.
+ */
+export function buildEmpty(parentName = ''): AppData {
+  counter = 0
+  return {
+    version: SEED_VERSION,
+    locale: 'en',
+    parentName,
+    createdAt: new Date().toISOString(),
+    isPlus: false,
+    onboarded: false,
+    activeChildId: null,
+    children: [],
+    // One parent, unnamed until onboarding asks. Relatives are added later —
+    // an empty family circle is honest, a fake Dadi is not.
+    members: [{ id: uid('mem'), name: parentName, role: 'parent', avatar: '🙂' }],
+    templates: TASK_TEMPLATES,
+    tasks: [],
+    rewards: [],
+    cheers: [],
+    ledger: [],
+  }
+}
+
 export function buildSeed(): AppData {
   counter = 0
   const today = todayKey()

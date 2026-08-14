@@ -532,4 +532,164 @@ export const en: Record<string, string> = {
   'language.title': 'Language',
   'language.subtitle': 'Choose how Sprout talks to you',
   'more.language': 'Language',
+
+  // --- custom tasks (the family's own routine, not our library) ---
+  'pack.custom': 'Your own tasks',
+  'tasks.custom.new': 'New task',
+  'tasks.custom.namePlaceholder': 'e.g. Feed the dog',
+  'tasks.custom.icon': 'Icon',
+  'tasks.custom.category': 'Kind of task',
+  'tasks.custom.points': 'Points: {n}',
+  'tasks.custom.pointsHint':
+    'Your task, your number — this one is not scaled by age. It is added to {name}’s day right away, and stays in the library for next time.',
+  'tasks.custom.save': 'Save & add to today',
+  'tasks.custom.remove': 'Remove task',
+  'tasks.custom.removeTitle': 'Remove “{title}”?',
+  'tasks.custom.removeBody':
+    'It stops being offered in the library. Days it was already done on keep their points and photos.',
+
+  // --- editing / removing a child ---
+  'child.edit.aria': 'Edit {name}',
+  'child.edit.title': 'Edit child',
+  'child.edit.save': 'Save changes',
+  'child.edit.ageWarning':
+    'Changing the age changes what new tasks are worth and which ones are offered. Points already earned stay exactly as they are.',
+  'child.remove.aria': 'Remove {name}',
+  'child.remove.title': 'Remove {name}?',
+  'child.remove.body':
+    'This deletes {name} completely: {points} points, {tasks} tasks, their photos, streak, rewards and their whole points history. It cannot be undone. Save a backup first if you might want it back.',
+  'child.remove.cta': 'Remove {name} and their history',
+  'children.swapHint': 'Or remove a child above to start a new one on the free plan.',
+
+  // --- account ---
+  'more.account': 'Account',
+  'account.title': 'Account',
+  'account.subtitle': 'You, your plan, and your data',
+  'account.you': 'Your details',
+  'account.email': 'Email (optional)',
+  'account.emailPlaceholder': 'you@example.com',
+  'account.phone': 'Phone (optional)',
+  'account.phonePlaceholder': '+91 ',
+  'account.optionalHint':
+    'Only used to label your backup file and greet you. Nothing is sent anywhere — there is no server.',
+  'account.save': 'Save details',
+  'account.saved': 'Saved ✓',
+  'account.since': 'Using Sprout since {date}',
+  'account.plan': 'Plan',
+  'account.plan.free': 'Free',
+  'account.plan.plus': 'Sprout Plus',
+  'account.plan.freeBlurb': 'The whole daily loop, one child, album, story, cheers and Hindi.',
+  'account.plan.plusBlurb': 'Insights, digest, family circle, gifting, more children and three jars.',
+  'account.plan.plusSince': 'Plus since {date}',
+  'account.plan.manage': 'Manage',
+  'account.plan.upgrade': 'See Plus',
+  'account.children': 'Children',
+  'account.noChildren': 'None yet',
+  'account.data': 'Your data',
+  'account.data.blurb':
+    'Everything lives in this browser on this device. No account, no sign-in, no server — which also means clearing your browser data erases it. Keep a backup.',
+  'account.data.usage': 'Using about {size} on this device',
+  'account.backup': 'Save a backup file',
+  'account.backup.hint':
+    'The backup holds everything: children, points history, photos and voice cheers. Restoring replaces what is on this device.',
+  'account.restore': 'Restore from a backup',
+  'account.restore.error.notJson': 'That file could not be read.',
+  'account.restore.error.notSprout': 'That is not a Sprout backup file.',
+  'account.restore.error.tooNew': 'That backup was made by a newer version of Sprout.',
+  'account.restore.error.incomplete': 'That backup is incomplete, so it was not opened.',
+  'account.restore.confirmTitle': 'Restore this backup?',
+  'account.restore.confirmBody':
+    'From {date}, with {n} children. Everything currently on this device is replaced. It cannot be undone.',
+  'account.restore.confirmCta': 'Replace and restore',
+  'account.noLogin':
+    'Sprout has no login and nothing to sign out of. Your family’s data never leaves this device.',
+
+  // --- routines, bonus, streaks ---
+  'tasks.everyDay': 'Every day',
+  'bonus.perfectDay.reason': 'Finished the whole day',
+  'bonus.perfectDay.undone': 'Undo: finished the whole day',
+  'celebrate.perfectDay': 'Whole day done! +{n} bonus',
+  'kid.allDone': 'Everything done today — {n} bonus points!',
+  'kid.finishAllFor': '{left} more to finish the day and get {n} bonus points',
+  'kid.markDone': 'I did {title}',
+  'kid.addPhoto': 'Photo',
+  'parentStreak.title': 'You have opened Sprout {n} days in a row',
+  'parentStreak.blurb': '{n} days in a row · best {best}. Showing up is the habit.',
+
+  // --- kid: doers, not managers ---
+  'kid.readyAskGrownup': 'Ready! Ask a grown-up',
+  'kid.keepSaving': '{n} more',
+  'kid.grownupPicksGoal': 'A grown-up picks what you save for',
+  'kid.family.title': 'The family today',
+  'kid.family.readOnly': 'You can watch, but only they can tick theirs',
+  'kid.family.progress': '{done} of {total} done',
+  'reward.redeemNow': 'Give it now',
+
+  // --- kid sign-in ---
+  'kid.login.title': 'Who is playing?',
+  'kid.login.subtitle': 'Tap your face',
+  'kid.login.hasPin': 'Has a PIN',
+  'kid.login.pinTitle': 'Hi {name}!',
+  'kid.login.pinSubtitle': 'Type your 4 numbers',
+  'kid.login.notMe': 'That is not me',
+  'pin.wrong': 'Not quite — try again',
+  'pin.delete': 'Delete a number',
+  'pin.parent.title': 'Grown-ups only',
+  'pin.parent.subtitle': 'Enter the parent PIN to award points and change settings',
+  'pin.parent.backToKid': 'Back to the kid view',
+  'persona.inParent': 'Parent view',
+  'persona.inKid': 'Kid view',
+  'persona.switchToParent': 'to Parent',
+  'persona.switchToKid': 'to Kid',
+
+  // --- access & locks ---
+  'more.access': 'Sign-in & locks',
+  'access.title': 'Sign-in & locks',
+  'access.subtitle': 'Who can open what on this device',
+  'access.parentLock': 'Parent PIN',
+  'access.parentLock.blurb':
+    'Asked for when anyone moves from the kid view into the parent screens — where points are awarded and rewards are priced.',
+  'access.on': 'On',
+  'access.off': 'Off',
+  'access.setPin': 'Set a PIN',
+  'access.change': 'Change PIN',
+  'access.remove': 'Remove PIN',
+  'access.remove.title': 'Remove this PIN?',
+  'access.remove.parentBody': 'Anyone holding the phone will be able to open the parent screens.',
+  'access.remove.childBody': '{name} will sign in with one tap, and any sibling could too.',
+  'access.child.locked': 'Signs in with a PIN',
+  'access.child.open': 'Signs in with one tap',
+  'access.child.pinTitle': '{name}’s PIN',
+  'access.enterNew': 'Type the new 4 numbers',
+  'access.enterAgain': 'Type them once more',
+  'access.username': 'Sign-in name',
+  'access.username.hint': 'What they see on the "Who is playing?" screen. Their own name by default.',
+  'access.siblings': 'Let {name} see their siblings’ day',
+  'access.siblings.hint': 'Watch only — they can never tick, assign or spend anything that is not theirs.',
+  'access.honesty':
+    'These are child locks, not security: four digits kept on this device. They stop a curious six-year-old, not an adult holding the phone.',
+
+  // --- kid colours ---
+  'garden.colours': 'My colours',
+  'garden.coloursHint': 'Pick how your world looks',
+  'theme.forest': 'Forest',
+  'theme.ocean': 'Ocean',
+  'theme.grape': 'Grape',
+  'theme.sunset': 'Sunset',
+  'theme.berry': 'Berry',
+
+  // --- account extras ---
+  'account.sound': 'Sounds',
+  'account.sound.hint': 'A whoosh when a task is ticked, a chime at the celebration.',
+  'account.startFresh': 'Start fresh with my own family',
+  'account.startFresh.hint': 'Clears the demo family (Aanya, Vir, Ira) and sets up yours.',
+  'account.startFresh.confirm':
+    'This deletes everything on this device — children, points, photos and cheers — and starts an empty family. Save a backup first if you want the demo back.',
+  'account.startFresh.cta': 'Delete everything and start fresh',
+  'kid.notMe': 'Not me',
+  'account.install': 'Put Sprout on the home screen',
+  'account.install.blurb':
+    'It then opens like an app — full screen, its own icon, and it still works with no signal.',
+  'account.install.how':
+    'iPhone: Share → Add to Home Screen. Android: the ⋮ menu → Install app.',
 }

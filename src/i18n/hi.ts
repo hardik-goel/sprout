@@ -539,4 +539,164 @@ export const hi: Record<string, string> = {
   'language.title': 'भाषा',
   'language.subtitle': 'चुनिए Sprout आपसे किस भाषा में बात करे',
   'more.language': 'भाषा',
+
+  // --- custom tasks ---
+  'pack.custom': 'आपके अपने काम',
+  'tasks.custom.new': 'नया काम',
+  'tasks.custom.namePlaceholder': 'जैसे कुत्ते को खाना देना',
+  'tasks.custom.icon': 'चिन्ह',
+  'tasks.custom.category': 'किस तरह का काम',
+  'tasks.custom.points': 'अंक: {n}',
+  'tasks.custom.pointsHint':
+    'आपका काम, आपके अंक — इसे उम्र के हिसाब से घटाया-बढ़ाया नहीं जाता। यह अभी {name} के आज के कामों में जुड़ जाएगा और आगे के लिए लाइब्रेरी में रहेगा।',
+  'tasks.custom.save': 'सेव करें और आज में जोड़ें',
+  'tasks.custom.remove': 'काम हटाएँ',
+  'tasks.custom.removeTitle': '“{title}” हटाएँ?',
+  'tasks.custom.removeBody':
+    'यह लाइब्रेरी में दिखना बंद हो जाएगा। जिन दिनों यह पूरा हुआ था, उनके अंक और फ़ोटो वैसे ही रहेंगे।',
+
+  // --- editing / removing a child ---
+  'child.edit.aria': '{name} में बदलाव करें',
+  'child.edit.title': 'बच्चे की जानकारी बदलें',
+  'child.edit.save': 'बदलाव सेव करें',
+  'child.edit.ageWarning':
+    'उम्र बदलने से नए कामों के अंक और कौन-से काम दिखेंगे, यह बदल जाता है। पहले कमाए हुए अंक जैसे हैं वैसे ही रहेंगे।',
+  'child.remove.aria': '{name} को हटाएँ',
+  'child.remove.title': '{name} को हटाएँ?',
+  'child.remove.body':
+    'इससे {name} पूरी तरह हट जाएँगे: {points} अंक, {tasks} काम, उनकी फ़ोटो, लगातार दिन, इनाम और पूरा अंक इतिहास। यह वापस नहीं आएगा। ज़रूरत लगे तो पहले बैकअप सेव कर लें।',
+  'child.remove.cta': '{name} और उनका इतिहास हटाएँ',
+  'children.swapHint': 'या ऊपर से एक बच्चे को हटाकर मुफ़्त प्लान में नया बच्चा जोड़ें।',
+
+  // --- account ---
+  'more.account': 'खाता',
+  'account.title': 'खाता',
+  'account.subtitle': 'आप, आपका प्लान और आपका डेटा',
+  'account.you': 'आपकी जानकारी',
+  'account.email': 'ईमेल (ज़रूरी नहीं)',
+  'account.emailPlaceholder': 'you@example.com',
+  'account.phone': 'फ़ोन (ज़रूरी नहीं)',
+  'account.phonePlaceholder': '+91 ',
+  'account.optionalHint':
+    'यह सिर्फ़ आपके बैकअप फ़ाइल के नाम और अभिवादन के लिए है। कहीं कुछ भेजा नहीं जाता — कोई सर्वर है ही नहीं।',
+  'account.save': 'जानकारी सेव करें',
+  'account.saved': 'सेव हो गया ✓',
+  'account.since': '{date} से Sprout के साथ',
+  'account.plan': 'प्लान',
+  'account.plan.free': 'मुफ़्त',
+  'account.plan.plus': 'Sprout Plus',
+  'account.plan.freeBlurb': 'रोज़ का पूरा सिलसिला, एक बच्चा, एल्बम, कहानी, शाबाशी और हिंदी।',
+  'account.plan.plusBlurb': 'आदत रिपोर्ट, हफ़्ते का सार, परिवार मंडल, अंक भेंट, ज़्यादा बच्चे और तीन गुल्लक।',
+  'account.plan.plusSince': '{date} से Plus',
+  'account.plan.manage': 'देखें',
+  'account.plan.upgrade': 'Plus देखें',
+  'account.children': 'बच्चे',
+  'account.noChildren': 'अभी कोई नहीं',
+  'account.data': 'आपका डेटा',
+  'account.data.blurb':
+    'सब कुछ इसी डिवाइस के ब्राउज़र में रहता है। कोई खाता नहीं, कोई लॉगिन नहीं, कोई सर्वर नहीं — इसका मतलब यह भी है कि ब्राउज़र डेटा मिटाने पर यह सब मिट जाएगा। बैकअप रखें।',
+  'account.data.usage': 'इस डिवाइस पर लगभग {size} जगह',
+  'account.backup': 'बैकअप फ़ाइल सेव करें',
+  'account.backup.hint':
+    'बैकअप में सब कुछ होता है: बच्चे, अंक इतिहास, फ़ोटो और आवाज़ वाली शाबाशी। रीस्टोर करने पर इस डिवाइस का मौजूदा डेटा बदल जाएगा।',
+  'account.restore': 'बैकअप से वापस लाएँ',
+  'account.restore.error.notJson': 'यह फ़ाइल पढ़ी नहीं जा सकी।',
+  'account.restore.error.notSprout': 'यह Sprout की बैकअप फ़ाइल नहीं है।',
+  'account.restore.error.tooNew': 'यह बैकअप Sprout के नए संस्करण से बना है।',
+  'account.restore.error.incomplete': 'यह बैकअप अधूरा है, इसलिए खोला नहीं गया।',
+  'account.restore.confirmTitle': 'यह बैकअप वापस लाएँ?',
+  'account.restore.confirmBody':
+    '{date} का, {n} बच्चों के साथ। इस डिवाइस पर अभी जो है, वह बदल जाएगा। यह वापस नहीं होगा।',
+  'account.restore.confirmCta': 'बदलें और वापस लाएँ',
+  'account.noLogin':
+    'Sprout में लॉगिन नहीं है, इसलिए साइन आउट करने को कुछ है ही नहीं। आपके परिवार का डेटा इस डिवाइस से कहीं नहीं जाता।',
+
+  // --- routines, bonus, streaks ---
+  'tasks.everyDay': 'रोज़',
+  'bonus.perfectDay.reason': 'पूरा दिन पूरा किया',
+  'bonus.perfectDay.undone': 'वापस: पूरा दिन पूरा किया',
+  'celebrate.perfectDay': 'पूरा दिन पूरा! +{n} बोनस',
+  'kid.allDone': 'आज सब हो गया — {n} बोनस अंक!',
+  'kid.finishAllFor': 'दिन पूरा करने के लिए {left} और, फिर {n} बोनस अंक',
+  'kid.markDone': 'मैंने {title} कर लिया',
+  'kid.addPhoto': 'फ़ोटो',
+  'parentStreak.title': 'आपने {n} दिन लगातार Sprout खोला है',
+  'parentStreak.blurb': '{n} दिन लगातार · सबसे ज़्यादा {best}. रोज़ आना ही आदत है।',
+
+  // --- kid: doers, not managers ---
+  'kid.readyAskGrownup': 'तैयार! बड़ों से कहो',
+  'kid.keepSaving': '{n} और',
+  'kid.grownupPicksGoal': 'क्या बचाना है, यह बड़े तय करते हैं',
+  'kid.family.title': 'आज का परिवार',
+  'kid.family.readOnly': 'तुम देख सकते हो, पर निशान वही लगाएँगे',
+  'kid.family.progress': '{total} में से {done} हो गए',
+  'reward.redeemNow': 'अभी दे दें',
+
+  // --- kid sign-in ---
+  'kid.login.title': 'कौन खेल रहा है?',
+  'kid.login.subtitle': 'अपनी तस्वीर दबाओ',
+  'kid.login.hasPin': 'पिन है',
+  'kid.login.pinTitle': 'नमस्ते {name}!',
+  'kid.login.pinSubtitle': 'अपने 4 नंबर डालो',
+  'kid.login.notMe': 'यह मैं नहीं हूँ',
+  'pin.wrong': 'नहीं मिला — फिर से डालो',
+  'pin.delete': 'एक नंबर मिटाएँ',
+  'pin.parent.title': 'सिर्फ़ बड़ों के लिए',
+  'pin.parent.subtitle': 'अंक देने और सेटिंग बदलने के लिए पैरेंट पिन डालें',
+  'pin.parent.backToKid': 'बच्चों वाली स्क्रीन पर वापस',
+  'persona.inParent': 'पैरेंट स्क्रीन',
+  'persona.inKid': 'बच्चों की स्क्रीन',
+  'persona.switchToParent': 'पैरेंट पर',
+  'persona.switchToKid': 'बच्चों पर',
+
+  // --- access & locks ---
+  'more.access': 'साइन-इन और ताले',
+  'access.title': 'साइन-इन और ताले',
+  'access.subtitle': 'इस डिवाइस पर कौन क्या खोल सकता है',
+  'access.parentLock': 'पैरेंट पिन',
+  'access.parentLock.blurb':
+    'जब कोई बच्चों की स्क्रीन से पैरेंट स्क्रीन पर जाता है, तब पूछा जाता है — वहीं अंक दिए जाते हैं और इनाम तय होते हैं।',
+  'access.on': 'चालू',
+  'access.off': 'बंद',
+  'access.setPin': 'पिन बनाएँ',
+  'access.change': 'पिन बदलें',
+  'access.remove': 'पिन हटाएँ',
+  'access.remove.title': 'यह पिन हटाएँ?',
+  'access.remove.parentBody': 'फ़ोन पकड़ने वाला कोई भी पैरेंट स्क्रीन खोल सकेगा।',
+  'access.remove.childBody': '{name} एक टैप में अंदर आ जाएँगे, और भाई-बहन भी।',
+  'access.child.locked': 'पिन से साइन इन',
+  'access.child.open': 'एक टैप से साइन इन',
+  'access.child.pinTitle': '{name} का पिन',
+  'access.enterNew': 'नए 4 नंबर डालें',
+  'access.enterAgain': 'एक बार फिर डालें',
+  'access.username': 'साइन-इन नाम',
+  'access.username.hint': '“कौन खेल रहा है?” स्क्रीन पर यही दिखेगा। डिफ़ॉल्ट में उनका अपना नाम।',
+  'access.siblings': '{name} को भाई-बहन का दिन दिखाएँ',
+  'access.siblings.hint': 'सिर्फ़ देखना — जो उनका नहीं है, उस पर वे न निशान लगा सकते हैं, न खर्च कर सकते हैं।',
+  'access.honesty':
+    'ये बच्चों के लिए ताले हैं, सुरक्षा नहीं: चार अंक, इसी डिवाइस पर। ये जिज्ञासु छह साल के बच्चे को रोकते हैं, फ़ोन पकड़े बड़े को नहीं।',
+
+  // --- kid colours ---
+  'garden.colours': 'मेरे रंग',
+  'garden.coloursHint': 'चुनो तुम्हारी दुनिया कैसी दिखे',
+  'theme.forest': 'जंगल',
+  'theme.ocean': 'समंदर',
+  'theme.grape': 'अंगूर',
+  'theme.sunset': 'शाम',
+  'theme.berry': 'बेरी',
+
+  // --- account extras ---
+  'account.sound': 'आवाज़ें',
+  'account.sound.hint': 'काम पर निशान लगते ही एक व्हूश, जश्न पर एक घंटी।',
+  'account.startFresh': 'अपने परिवार के साथ नई शुरुआत',
+  'account.startFresh.hint': 'डेमो परिवार (आन्या, वीर, ईरा) हटाकर आपका परिवार बनाता है।',
+  'account.startFresh.confirm':
+    'इससे इस डिवाइस का सब कुछ मिट जाएगा — बच्चे, अंक, फ़ोटो और शाबाशी — और खाली परिवार से शुरुआत होगी। डेमो वापस चाहिए तो पहले बैकअप सेव करें।',
+  'account.startFresh.cta': 'सब मिटाएँ और नई शुरुआत करें',
+  'kid.notMe': 'मैं नहीं',
+  'account.install': 'Sprout को होम स्क्रीन पर लगाएँ',
+  'account.install.blurb':
+    'फिर यह ऐप की तरह खुलेगा — पूरी स्क्रीन, अपना आइकॉन, और नेटवर्क न हो तब भी चलेगा।',
+  'account.install.how':
+    'iPhone: शेयर → Add to Home Screen. Android: ⋮ मेन्यू → Install app.',
 }

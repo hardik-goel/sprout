@@ -14,7 +14,7 @@
 // ============================================================================
 
 import type { JarKind, JarSplit, LedgerEvent } from './types'
-import { addDays, todayKey, weekKey } from './dates'
+import { dayStreak, todayKey, weekKey, type DayStreak } from './dates'
 
 /**
  * Append with dedupe. Replaying the same event id (retry, offline flush,
@@ -161,60 +161,24 @@ export function remainingGiftAllowance(
 
 // --- Streaks ---------------------------------------------------------------
 
-export interface StreakInfo {
-  current: number
-  best: number
-  lastActiveDate: string | null
-  /** True when today has no approval yet but yesterday did — "don't lose it". */
-  atRisk: boolean
-}
+export type StreakInfo = DayStreak
 
 /**
  * Streak = consecutive days with >= 1 approved task, derived from the ledger.
- * A streak whose last day is older than yesterday is over, so `current` is 0.
+ * The run arithmetic itself lives in `dates.dayStreak`, because the parent's
+ * open-the-app streak counts exactly the same way over a different set of days.
  */
 export function streakInfo(
   ledger: LedgerEvent[],
   childId: string,
   today: string = todayKey(),
 ): StreakInfo {
-  const days = [
-    ...new Set(
-      eventsFor(ledger, childId)
-        .filter((e) => e.type === 'TASK_APPROVED')
-        .map((e) => e.date),
-    ),
-  ].sort()
-
-  if (days.length === 0) {
-    return { current: 0, best: 0, lastActiveDate: null, atRisk: false }
-  }
-
-  // Longest run anywhere in history = best streak.
-  let best = 1
-  let run = 1
-  for (let i = 1; i < days.length; i++) {
-    run = addDays(days[i - 1], 1) === days[i] ? run + 1 : 1
-    if (run > best) best = run
-  }
-
-  // Run ending at the last active day = the live streak (0 if it's stale).
-  const last = days[days.length - 1]
-  let current = 0
-  if (last === today || addDays(last, 1) === today) {
-    current = 1
-    for (let i = days.length - 1; i > 0; i--) {
-      if (addDays(days[i - 1], 1) === days[i]) current++
-      else break
-    }
-  }
-
-  return {
-    current,
-    best,
-    lastActiveDate: last,
-    atRisk: current > 0 && last !== today,
-  }
+  return dayStreak(
+    eventsFor(ledger, childId)
+      .filter((e) => e.type === 'TASK_APPROVED')
+      .map((e) => e.date),
+    today,
+  )
 }
 
 export function activeDays(ledger: LedgerEvent[], childId: string): Set<string> {
